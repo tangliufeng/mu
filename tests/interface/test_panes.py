@@ -3,17 +3,18 @@
 Tests for the user interface elements of Mu.
 """
 from PyQt5.QtWidgets import QMessageBox, QLabel
-from PyQt5.QtChart import QChart, QLineSeries, QValueAxis
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QTextCursor
 from unittest import mock
 import sys
 import os
 import signal
-import mu
 import platform
 from collections import deque
+import pytest
+import mu
 import mu.interface.panes
+from mu.interface.panes import CHARTS
 
 
 def test_PANE_ZOOM_SIZES():
@@ -2226,6 +2227,7 @@ def test_DebugInspector_set_theme():
     di.set_theme("test")
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_init():
     """
     Ensure the plotter pane is created in the expected manner.
@@ -2238,12 +2240,13 @@ def test_PlotterPane_init():
     assert len(pp.data) == 1
     assert isinstance(pp.data[0], deque)
     assert len(pp.series) == 1
-    assert isinstance(pp.series[0], QLineSeries)
-    assert isinstance(pp.chart, QChart)
-    assert isinstance(pp.axis_x, QValueAxis)
-    assert isinstance(pp.axis_y, QValueAxis)
+    assert isinstance(pp.series[0], mu.interface.panes.QLineSeries)
+    assert isinstance(pp.chart, mu.interface.panes.QChart)
+    assert isinstance(pp.axis_x, mu.interface.panes.QValueAxis)
+    assert isinstance(pp.axis_y, mu.interface.panes.QValueAxis)
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_process_tty_data():
     """
     If a byte representation of a Python tuple containing numeric values,
@@ -2257,6 +2260,7 @@ def test_PlotterPane_process_tty_data():
     pp.add_data.assert_called_once_with((1, 2.3, 4))
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_process_tty_data_guards_against_data_flood():
     """
     If the process_tty_data method gets data of more than 1024 bytes
@@ -2279,6 +2283,7 @@ def test_PlotterPane_process_tty_data_guards_against_data_flood():
     assert pp.add_data.call_count == 0
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_process_tty_data_tuple_not_numeric():
     """
     If a byte representation of a tuple is received but it doesn't contain
@@ -2290,6 +2295,7 @@ def test_PlotterPane_process_tty_data_tuple_not_numeric():
     assert pp.add_data.call_count == 0
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_process_tty_data_overrun_input_buffer():
     """
     If the incoming bytes are not complete, ensure the input_buffer caches them
@@ -2309,6 +2315,7 @@ def test_PlotterPane_process_tty_data_overrun_input_buffer():
     pp.add_data.assert_called_once_with((1, 2.3, 4))
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_add_data():
     """
     Given a tuple with a single value, ensure it is logged and correctly added
@@ -2325,6 +2332,7 @@ def test_PlotterPane_add_data():
     mock_line_series.append.call_args_list[99][0] == (99, 1)
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_add_data_adjust_values_up():
     """
     If more values than have been encountered before are added to the incoming
@@ -2342,6 +2350,7 @@ def test_PlotterPane_add_data_adjust_values_up():
     assert len(pp.data) == 4
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_add_data_adjust_values_down():
     """
     If less values are encountered, before they are added to the incoming
@@ -2359,6 +2368,7 @@ def test_PlotterPane_add_data_adjust_values_down():
     assert pp.chart.removeSeries.call_count == 2
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_add_data_re_scale_up():
     """
     If the y axis contains data greater than the current range, then ensure
@@ -2373,6 +2383,7 @@ def test_PlotterPane_add_data_re_scale_up():
     pp.axis_y.setRange.assert_called_once_with(-2000, 2000)
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_add_data_re_scale_down():
     """
     If the y axis contains data less than half of the current range, then
@@ -2388,6 +2399,7 @@ def test_PlotterPane_add_data_re_scale_down():
     pp.axis_y.setRange.assert_called_once_with(-2000, 2000)
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_set_label_format_to_float_when_range_small():
     """
     If the max_y is 5 or less, make sure the label format is set to being a
@@ -2404,6 +2416,7 @@ def test_PlotterPane_set_label_format_to_float_when_range_small():
     pp.axis_y.setLabelFormat.assert_called_once_with("%2.2f")
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_set_label_format_to_int_when_range_large():
     """
     If the max_y is 5 or less, make sure the label format is set to being a
@@ -2420,6 +2433,7 @@ def test_PlotterPane_set_label_format_to_int_when_range_large():
     pp.axis_y.setLabelFormat.assert_called_once_with("%d")
 
 
+@pytest.mark.skipif(not CHARTS, reason="QtChart unavailable")
 def test_PlotterPane_set_theme():
     """
     Ensure the themes for the chart relate correctly to the theme names used
@@ -2428,10 +2442,16 @@ def test_PlotterPane_set_theme():
     pp = mu.interface.panes.PlotterPane()
     pp.chart = mock.MagicMock()
     pp.set_theme("day")
-    pp.chart.setTheme.assert_called_once_with(QChart.ChartThemeLight)
+    pp.chart.setTheme.assert_called_once_with(
+        mu.interface.panes.QChart.ChartThemeLight
+    )
     pp.chart.setTheme.reset_mock()
     pp.set_theme("night")
-    pp.chart.setTheme.assert_called_once_with(QChart.ChartThemeDark)
+    pp.chart.setTheme.assert_called_once_with(
+        mu.interface.panes.QChart.ChartThemeDark
+    )
     pp.chart.setTheme.reset_mock()
     pp.set_theme("contrast")
-    pp.chart.setTheme.assert_called_once_with(QChart.ChartThemeHighContrast)
+    pp.chart.setTheme.assert_called_once_with(
+        mu.interface.panes.QChart.ChartThemeHighContrast
+    )
