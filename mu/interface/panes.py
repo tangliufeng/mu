@@ -56,7 +56,7 @@ from PyQt5.QtGui import (
     QDesktopServices,
     QStandardItem,
 )
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
+
 from mu import language_code
 from mu.interface.themes import Font
 from mu.interface.themes import DEFAULT_FONT_SIZE
@@ -65,7 +65,8 @@ from mu.interface.themes import DEFAULT_FONT_SIZE
 logger = logging.getLogger(__name__)
 
 
-CHARTS = True
+# CHARTS = True
+CHARTS = False
 try:  # pragma: no cover
     from PyQt5.QtChart import QChart, QLineSeries, QChartView, QValueAxis
 except ImportError:  # pragma: no cover
@@ -85,58 +86,58 @@ PANE_ZOOM_SIZES = {
 }
 
 
-class JupyterREPLPane(RichJupyterWidget):
-    """
-    REPL = Read, Evaluate, Print, Loop.
+# class JupyterREPLPane(RichJupyterWidget):
+#     """
+#     REPL = Read, Evaluate, Print, Loop.
 
-    Displays a Jupyter iPython session.
-    """
+#     Displays a Jupyter iPython session.
+#     """
 
-    on_append_text = pyqtSignal(bytes)
+#     on_append_text = pyqtSignal(bytes)
 
-    def __init__(self, theme="day", parent=None):
-        super().__init__(parent)
-        self.set_theme(theme)
-        self.console_height = 10
+#     def __init__(self, theme="day", parent=None):
+#         super().__init__(parent)
+#         self.set_theme(theme)
+#         self.console_height = 10
 
-    def _append_plain_text(self, text, *args, **kwargs):
-        """
-        Ensures appended text is emitted as a signal with associated bytes.
-        """
-        super()._append_plain_text(text, *args, **kwargs)
-        self.on_append_text.emit(text.encode("utf-8"))
+#     def _append_plain_text(self, text, *args, **kwargs):
+#         """
+#         Ensures appended text is emitted as a signal with associated bytes.
+#         """
+#         super()._append_plain_text(text, *args, **kwargs)
+#         self.on_append_text.emit(text.encode("utf-8"))
 
-    def set_font_size(self, new_size=DEFAULT_FONT_SIZE):
-        """
-        Sets the font size for all the textual elements in this pane.
-        """
-        font = self.font
-        font.setPointSize(new_size)
-        self._set_font(font)
+#     def set_font_size(self, new_size=DEFAULT_FONT_SIZE):
+#         """
+#         Sets the font size for all the textual elements in this pane.
+#         """
+#         font = self.font
+#         font.setPointSize(new_size)
+#         self._set_font(font)
 
-    def set_zoom(self, size):
-        """
-        Set the current zoom level given the "t-shirt" size.
-        """
-        self.set_font_size(PANE_ZOOM_SIZES[size])
+#     def set_zoom(self, size):
+#         """
+#         Set the current zoom level given the "t-shirt" size.
+#         """
+#         self.set_font_size(PANE_ZOOM_SIZES[size])
 
-    def set_theme(self, theme):
-        """
-        Sets the theme / look for the REPL pane.
-        """
-        if theme == "contrast":
-            self.set_default_style(colors="nocolor")
-        elif theme == "night":
-            self.set_default_style(colors="nocolor")
-        else:
-            self.set_default_style()
+#     def set_theme(self, theme):
+#         """
+#         Sets the theme / look for the REPL pane.
+#         """
+#         if theme == "contrast":
+#             self.set_default_style(colors="nocolor")
+#         elif theme == "night":
+#             self.set_default_style(colors="nocolor")
+#         else:
+#             self.set_default_style()
 
-    def setFocus(self):
-        """
-        Override base setFocus so the focus happens to the embedded _control
-        within this widget.
-        """
-        self._control.setFocus()
+#     def setFocus(self):
+#         """
+#         Override base setFocus so the focus happens to the embedded _control
+#         within this widget.
+#         """
+#         self._control.setFocus()
 
 
 VT100_RETURN = b"\r"
@@ -1319,229 +1320,229 @@ class PythonProcessPane(QTextEdit):
         pass
 
 
-class DebugInspectorItem(QStandardItem):
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.setEditable(False)
+# class DebugInspectorItem(QStandardItem):
+#     def __init__(self, *args):
+#         super().__init__(*args)
+#         self.setEditable(False)
 
 
-class DebugInspector(QTreeView):
-    """
-    Presents a tree like representation of the current state of the call stack
-    to the user.
-    """
+# class DebugInspector(QTreeView):
+#     """
+#     Presents a tree like representation of the current state of the call stack
+#     to the user.
+#     """
 
-    def __init__(self):
-        super().__init__()
-        self.setUniformRowHeights(True)
-        self.setSelectionBehavior(QTreeView.SelectRows)
+#     def __init__(self):
+#         super().__init__()
+#         self.setUniformRowHeights(True)
+#         self.setSelectionBehavior(QTreeView.SelectRows)
 
-    def set_font_size(self, new_size=DEFAULT_FONT_SIZE):
-        """
-        Sets the font size for all the textual elements in this pane.
-        """
-        stylesheet = (
-            "QWidget{font-size: "
-            + str(new_size)
-            + "pt; font-family: Monospace;}"
-        )
-        self.setStyleSheet(stylesheet)
+#     def set_font_size(self, new_size=DEFAULT_FONT_SIZE):
+#         """
+#         Sets the font size for all the textual elements in this pane.
+#         """
+#         stylesheet = (
+#             "QWidget{font-size: "
+#             + str(new_size)
+#             + "pt; font-family: Monospace;}"
+#         )
+#         self.setStyleSheet(stylesheet)
 
-    def set_zoom(self, size):
-        """
-        Set the current zoom level given the "t-shirt" size.
-        """
-        self.set_font_size(PANE_ZOOM_SIZES[size])
+#     def set_zoom(self, size):
+#         """
+#         Set the current zoom level given the "t-shirt" size.
+#         """
+#         self.set_font_size(PANE_ZOOM_SIZES[size])
 
-    def set_theme(self, theme):
-        pass
+#     def set_theme(self, theme):
+#         pass
 
 
-class PlotterPane(QChartView):
-    """
-    This plotter widget makes viewing sensor data easy!
+# class PlotterPane(QChartView):
+#     """
+#     This plotter widget makes viewing sensor data easy!
 
-    This widget represents a chart that will look for tuple data from
-    the MicroPython REPL, Python 3 REPL or Python 3 code runner and will
-    auto-generate a graph.
-    """
+#     This widget represents a chart that will look for tuple data from
+#     the MicroPython REPL, Python 3 REPL or Python 3 code runner and will
+#     auto-generate a graph.
+#     """
 
-    data_flood = pyqtSignal()
+#     data_flood = pyqtSignal()
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        # Holds the raw input to be checked for actionable data to display.
-        self.input_buffer = []
-        # Holds the raw actionable data detected while plotting.
-        self.raw_data = []
-        self.setObjectName("plotterpane")
-        # Number of datapoints to show (caps at self.max_x)
-        self.num_datapoints = 0
-        self.lookback = 500
-        self.max_x = 100  # Maximum value along x axis
-        self.max_y = 1000  # Maximum value +/- along y axis
-        self.min_y = -1000
-        self.flooded = False  # Flag to indicate if data flooding is happening.
+#     def __init__(self, parent=None):
+#         super().__init__(parent)
+#         # Holds the raw input to be checked for actionable data to display.
+#         self.input_buffer = []
+#         # Holds the raw actionable data detected while plotting.
+#         self.raw_data = []
+#         self.setObjectName("plotterpane")
+#         # Number of datapoints to show (caps at self.max_x)
+#         self.num_datapoints = 0
+#         self.lookback = 500
+#         self.max_x = 100  # Maximum value along x axis
+#         self.max_y = 1000  # Maximum value +/- along y axis
+#         self.min_y = -1000
+#         self.flooded = False  # Flag to indicate if data flooding is happening.
 
-        # Holds deques for each slot of incoming data (assumes 1 to start with)
-        self.data = [deque([0] * self.lookback)]
-        # Holds line series for each slot of incoming data (assumes 1 to start
-        # with).
-        self.series = [QLineSeries()]
+#         # Holds deques for each slot of incoming data (assumes 1 to start with)
+#         self.data = [deque([0] * self.lookback)]
+#         # Holds line series for each slot of incoming data (assumes 1 to start
+#         # with).
+#         self.series = [QLineSeries()]
 
-        # Ranges used for the Y axis (up to 1000, after which we just double
-        # the range).
-        self.y_ranges = [0, 1, 5, 10, 25, 50, 100, 250, 500, 1000]
+#         # Ranges used for the Y axis (up to 1000, after which we just double
+#         # the range).
+#         self.y_ranges = [0, 1, 5, 10, 25, 50, 100, 250, 500, 1000]
 
-        # Set up the chart with sensible defaults.
-        self.chart = QChart()
-        self.chart.legend().hide()
-        self.chart.addSeries(self.series[0])
-        self.axis_x = QValueAxis()
-        self.axis_y = QValueAxis()
-        self.axis_x.setRange(0, self.max_x)
-        self.axis_y.setRange(self.min_y, self.max_y)
-        self.axis_x.setLabelFormat("time")
-        self.axis_y.setLabelFormat("%d")
-        self.chart.setAxisX(self.axis_x, self.series[0])
-        self.chart.setAxisY(self.axis_y, self.series[0])
-        self.setChart(self.chart)
-        self.setRenderHint(QPainter.Antialiasing)
+#         # Set up the chart with sensible defaults.
+#         self.chart = QChart()
+#         self.chart.legend().hide()
+#         self.chart.addSeries(self.series[0])
+#         self.axis_x = QValueAxis()
+#         self.axis_y = QValueAxis()
+#         self.axis_x.setRange(0, self.max_x)
+#         self.axis_y.setRange(self.min_y, self.max_y)
+#         self.axis_x.setLabelFormat("time")
+#         self.axis_y.setLabelFormat("%d")
+#         self.chart.setAxisX(self.axis_x, self.series[0])
+#         self.chart.setAxisY(self.axis_y, self.series[0])
+#         self.setChart(self.chart)
+#         self.setRenderHint(QPainter.Antialiasing)
 
-    def process_tty_data(self, data):
-        """
-        Takes raw bytes and, if a valid tuple is detected, adds the data to
-        the plotter.
+#     def process_tty_data(self, data):
+#         """
+#         Takes raw bytes and, if a valid tuple is detected, adds the data to
+#         the plotter.
 
-        The the length of the bytes data > 1024 then a data_flood signal is
-        emitted to ensure Mu can take action to remain responsive.
-        """
-        # Data flooding guards.
-        if self.flooded:
-            return
-        if len(data) > 1024:
-            self.flooded = True
-            self.data_flood.emit()
-            return
-        data = data.replace(b"\r\n", b"\n")
-        self.input_buffer.append(data)
-        # Check if the data contains a Python tuple, containing numbers, on a
-        # single line (i.e. ends with \n).
-        input_bytes = b"".join(self.input_buffer)
-        lines = input_bytes.split(b"\n")
-        for line in lines:
-            if line.startswith(b"(") and line.endswith(b")"):
-                # Candidate tuple. Extract the raw bytes into a numeric tuple.
-                raw_values = [val.strip() for val in line[1:-1].split(b",")]
-                numeric_values = []
-                for raw in raw_values:
-                    try:
-                        numeric_values.append(int(raw))
-                        # It worked, so move onto the next value.
-                        continue
-                    except ValueError:
-                        # Try again as a float.
-                        pass
-                    try:
-                        numeric_values.append(float(raw))
-                    except ValueError:
-                        # Not an int or float, so ignore this value.
-                        continue
-                if numeric_values:
-                    # There were numeric values in the tuple, so use them!
-                    self.add_data(tuple(numeric_values))
-        # Reset the input buffer.
-        self.input_buffer = []
-        if lines[-1]:
-            # Append any bytes that are not yet at the end of a line, for
-            # processing next time we read data from self.connection.
-            self.input_buffer.append(lines[-1])
+#         The the length of the bytes data > 1024 then a data_flood signal is
+#         emitted to ensure Mu can take action to remain responsive.
+#         """
+#         # Data flooding guards.
+#         if self.flooded:
+#             return
+#         if len(data) > 1024:
+#             self.flooded = True
+#             self.data_flood.emit()
+#             return
+#         data = data.replace(b"\r\n", b"\n")
+#         self.input_buffer.append(data)
+#         # Check if the data contains a Python tuple, containing numbers, on a
+#         # single line (i.e. ends with \n).
+#         input_bytes = b"".join(self.input_buffer)
+#         lines = input_bytes.split(b"\n")
+#         for line in lines:
+#             if line.startswith(b"(") and line.endswith(b")"):
+#                 # Candidate tuple. Extract the raw bytes into a numeric tuple.
+#                 raw_values = [val.strip() for val in line[1:-1].split(b",")]
+#                 numeric_values = []
+#                 for raw in raw_values:
+#                     try:
+#                         numeric_values.append(int(raw))
+#                         # It worked, so move onto the next value.
+#                         continue
+#                     except ValueError:
+#                         # Try again as a float.
+#                         pass
+#                     try:
+#                         numeric_values.append(float(raw))
+#                     except ValueError:
+#                         # Not an int or float, so ignore this value.
+#                         continue
+#                 if numeric_values:
+#                     # There were numeric values in the tuple, so use them!
+#                     self.add_data(tuple(numeric_values))
+#         # Reset the input buffer.
+#         self.input_buffer = []
+#         if lines[-1]:
+#             # Append any bytes that are not yet at the end of a line, for
+#             # processing next time we read data from self.connection.
+#             self.input_buffer.append(lines[-1])
 
-    def add_data(self, values):
-        """
-        Given a tuple of values, ensures there are the required number of line
-        series, add the data to the line series, update the range of the chart
-        so the chart displays nicely.
-        """
-        # Store incoming data to dump as CSV at the end of the session.
-        self.raw_data.append(values)
-        # Check the number of incoming values.
-        if len(values) != len(self.series):
-            # Adjust the number of line series.
-            value_len = len(values)
-            series_len = len(self.series)
-            if value_len > series_len:
-                # Add new line series.
-                for i in range(value_len - series_len):
-                    new_series = QLineSeries()
-                    self.chart.addSeries(new_series)
-                    self.chart.setAxisX(self.axis_x, new_series)
-                    self.chart.setAxisY(self.axis_y, new_series)
-                    self.series.append(new_series)
-                    self.data.append(deque([0] * self.lookback))
-            else:
-                # Remove old line series.
-                for old_series in self.series[value_len:]:
-                    self.chart.removeSeries(old_series)
-                self.series = self.series[:value_len]
-                self.data = self.data[:value_len]
+#     def add_data(self, values):
+#         """
+#         Given a tuple of values, ensures there are the required number of line
+#         series, add the data to the line series, update the range of the chart
+#         so the chart displays nicely.
+#         """
+#         # Store incoming data to dump as CSV at the end of the session.
+#         self.raw_data.append(values)
+#         # Check the number of incoming values.
+#         if len(values) != len(self.series):
+#             # Adjust the number of line series.
+#             value_len = len(values)
+#             series_len = len(self.series)
+#             if value_len > series_len:
+#                 # Add new line series.
+#                 for i in range(value_len - series_len):
+#                     new_series = QLineSeries()
+#                     self.chart.addSeries(new_series)
+#                     self.chart.setAxisX(self.axis_x, new_series)
+#                     self.chart.setAxisY(self.axis_y, new_series)
+#                     self.series.append(new_series)
+#                     self.data.append(deque([0] * self.lookback))
+#             else:
+#                 # Remove old line series.
+#                 for old_series in self.series[value_len:]:
+#                     self.chart.removeSeries(old_series)
+#                 self.series = self.series[:value_len]
+#                 self.data = self.data[:value_len]
 
-        # Add the incoming values to the data to be displayed, and compute
-        # max range.
-        max_ranges = []
-        min_ranges = []
-        for i, value in enumerate(values):
-            self.data[i].appendleft(value)
-            max_ranges.append(max(self.data[i]))
-            min_ranges.append(min(self.data[i]))
-            if len(self.data[i]) > self.lookback:
-                self.data[i].pop()
-            self.num_datapoints = min(self.num_datapoints + 1, self.max_x)
+#         # Add the incoming values to the data to be displayed, and compute
+#         # max range.
+#         max_ranges = []
+#         min_ranges = []
+#         for i, value in enumerate(values):
+#             self.data[i].appendleft(value)
+#             max_ranges.append(max(self.data[i]))
+#             min_ranges.append(min(self.data[i]))
+#             if len(self.data[i]) > self.lookback:
+#                 self.data[i].pop()
+#             self.num_datapoints = min(self.num_datapoints + 1, self.max_x)
 
-        # Re-scale y-axis.
-        max_y_range = max(max_ranges)
-        y_range = bisect.bisect_left(self.y_ranges, max_y_range)
-        if y_range < len(self.y_ranges):
-            self.max_y = self.y_ranges[y_range]
-        elif max_y_range > self.max_y:
-            self.max_y += self.max_y
-        elif max_y_range < self.max_y / 2:
-            self.max_y = self.max_y / 2
+#         # Re-scale y-axis.
+#         max_y_range = max(max_ranges)
+#         y_range = bisect.bisect_left(self.y_ranges, max_y_range)
+#         if y_range < len(self.y_ranges):
+#             self.max_y = self.y_ranges[y_range]
+#         elif max_y_range > self.max_y:
+#             self.max_y += self.max_y
+#         elif max_y_range < self.max_y / 2:
+#             self.max_y = self.max_y / 2
 
-        min_y_range = min(min_ranges)
-        y_range = bisect.bisect_left(self.y_ranges, abs(min_y_range))
-        if y_range < len(self.y_ranges):
-            self.min_y = -self.y_ranges[y_range]
-        elif min_y_range < self.min_y:
-            self.min_y += self.min_y
-        elif min_y_range > self.min_y / 2:
-            self.min_y = self.min_y / 2
+#         min_y_range = min(min_ranges)
+#         y_range = bisect.bisect_left(self.y_ranges, abs(min_y_range))
+#         if y_range < len(self.y_ranges):
+#             self.min_y = -self.y_ranges[y_range]
+#         elif min_y_range < self.min_y:
+#             self.min_y += self.min_y
+#         elif min_y_range > self.min_y / 2:
+#             self.min_y = self.min_y / 2
 
-        self.axis_y.setRange(self.min_y, self.max_y)
+#         self.axis_y.setRange(self.min_y, self.max_y)
 
-        # Ensure floats are used to label y axis if the range is small.
-        if self.max_y - self.min_y <= 10:
-            self.axis_y.setLabelFormat("%2.2f")
-        else:
-            self.axis_y.setLabelFormat("%d")
+#         # Ensure floats are used to label y axis if the range is small.
+#         if self.max_y - self.min_y <= 10:
+#             self.axis_y.setLabelFormat("%2.2f")
+#         else:
+#             self.axis_y.setLabelFormat("%d")
 
-        # Update the line series with the data.
-        for i, line_series in enumerate(self.series):
-            line_series.clear()
-            xy_vals = []
-            for j in range(self.num_datapoints):
-                val = self.data[i][self.num_datapoints - 1 - j]
-                xy_vals.append((j, val))
-            for point in xy_vals:
-                line_series.append(*point)
+#         # Update the line series with the data.
+#         for i, line_series in enumerate(self.series):
+#             line_series.clear()
+#             xy_vals = []
+#             for j in range(self.num_datapoints):
+#                 val = self.data[i][self.num_datapoints - 1 - j]
+#                 xy_vals.append((j, val))
+#             for point in xy_vals:
+#                 line_series.append(*point)
 
-    def set_theme(self, theme):
-        """
-        Sets the theme / look for the plotter pane.
-        """
-        if theme == "day":
-            self.chart.setTheme(QChart.ChartThemeLight)
-        elif theme == "night":
-            self.chart.setTheme(QChart.ChartThemeDark)
-        else:
-            self.chart.setTheme(QChart.ChartThemeHighContrast)
+#     def set_theme(self, theme):
+#         """
+#         Sets the theme / look for the plotter pane.
+#         """
+#         if theme == "day":
+#             self.chart.setTheme(QChart.ChartThemeLight)
+#         elif theme == "night":
+#             self.chart.setTheme(QChart.ChartThemeDark)
+#         else:
+#             self.chart.setTheme(QChart.ChartThemeHighContrast)

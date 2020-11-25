@@ -34,15 +34,15 @@ from mu.logic import Editor, LOG_FILE, LOG_DIR, DEBUGGER_PORT, ENCODING
 from mu.interface import Window
 from mu.resources import load_pixmap, load_icon
 from mu.modes import (
-    PythonMode,
-    CircuitPythonMode,
-    MicrobitMode,
-    DebugMode,
-    PyGameZeroMode,
+    # PythonMode,
+    # CircuitPythonMode,
+    # MicrobitMode,
+    # DebugMode,
+    # PyGameZeroMode,
     ESPMode,
-    WebMode,
+    # WebMode,
 )
-from mu.debugger.runner import run as run_debugger
+# from mu.debugger.runner import run as run_debugger
 from mu.interface.themes import NIGHT_STYLE, DAY_STYLE, CONTRAST_STYLE
 
 
@@ -82,17 +82,17 @@ def setup_modes(editor, view):
     splitting things out here to contain the mess. ;-)
     """
     modes = {
-        "python": PythonMode(editor, view),
-        "circuitpython": CircuitPythonMode(editor, view),
-        "microbit": MicrobitMode(editor, view),
+        # "python": PythonMode(editor, view),
+        # "circuitpython": CircuitPythonMode(editor, view),
+        # "microbit": MicrobitMode(editor, view),
         "esp": ESPMode(editor, view),
-        "web": WebMode(editor, view),
-        "debugger": DebugMode(editor, view),
+        # "web": WebMode(editor, view),
+        # "debugger": DebugMode(editor, view),
     }
 
     # Check if pgzero is available (without importing it)
-    if any([m for m in pkgutil.iter_modules() if "pgzero" in m]):
-        modes["pygamezero"] = PyGameZeroMode(editor, view)
+    # if any([m for m in pkgutil.iter_modules() if "pgzero" in m]):
+    #     modes["pygamezero"] = PyGameZeroMode(editor, view)
 
     # return available modes
     return modes
@@ -175,7 +175,7 @@ def run():
     editor.setup(setup_modes(editor, editor_window))
     # Setup the window.
     editor_window.closeEvent = editor.quit
-    editor_window.setup(editor.debug_toggle_breakpoint, editor.theme)
+    editor_window.setup(editor.theme)
     # Restore the previous session along with files passed by the os
     editor.restore_session(sys.argv[1:])
     # Connect the various UI elements in the window to the editor.
@@ -188,17 +188,17 @@ def run():
     sys.exit(app.exec_())
 
 
-def debug():
-    """
-    Create a debug runner in a new process.
+# def debug():
+#     """
+#     Create a debug runner in a new process.
 
-    This is what the Mu debugger will drive. Uses the filename and associated
-    args found in sys.argv.
-    """
-    if len(sys.argv) > 1:
-        filename = os.path.normcase(os.path.abspath(sys.argv[1]))
-        args = sys.argv[2:]
-        run_debugger("localhost", DEBUGGER_PORT, filename, args)
-    else:
-        # See https://github.com/mu-editor/mu/issues/743
-        print("Debugger requires a Python script filename to run.")
+#     This is what the Mu debugger will drive. Uses the filename and associated
+#     args found in sys.argv.
+#     """
+#     if len(sys.argv) > 1:
+#         filename = os.path.normcase(os.path.abspath(sys.argv[1]))
+#         args = sys.argv[2:]
+#         run_debugger("localhost", DEBUGGER_PORT, filename, args)
+#     else:
+#         # See https://github.com/mu-editor/mu/issues/743
+#         print("Debugger requires a Python script filename to run.")

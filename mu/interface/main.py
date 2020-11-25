@@ -54,13 +54,11 @@ from mu.interface.themes import (
     DEFAULT_FONT_SIZE,
 )
 from mu.interface.panes import (
-    DebugInspector,
-    DebugInspectorItem,
+
     PythonProcessPane,
-    JupyterREPLPane,
     MicroPythonREPLPane,
     FileSystemPane,
-    PlotterPane,
+    # PlotterPane,
 )
 from mu.interface.editor import EditorPane
 from mu.interface.widgets import DeviceSelector
@@ -100,22 +98,22 @@ class ButtonBar(QToolBar):
             tool_text=_("Change Mu's mode of behaviour."),
         )
         self.addSeparator()
-        self.addAction(
-            name="new",
-            display_name=_("New"),
-            tool_text=_("Create a new Python script."),
-        )
-        self.addAction(
-            name="load",
-            display_name=_("Load"),
-            tool_text=_("Load a Python script."),
-        )
-        self.addAction(
-            name="save",
-            display_name=_("Save"),
-            tool_text=_("Save the current Python script."),
-        )
-        self.addSeparator()
+        # self.addAction(
+        #     name="new",
+        #     display_name=_("New"),
+        #     tool_text=_("Create a new Python script."),
+        # )
+        # self.addAction(
+        #     name="load",
+        #     display_name=_("Load"),
+        #     tool_text=_("Load a Python script."),
+        # )
+        # self.addAction(
+        #     name="save",
+        #     display_name=_("Save"),
+        #     tool_text=_("Save the current Python script."),
+        # )
+        # self.addSeparator()
 
         for action in mode.actions():
             self.addAction(
@@ -124,41 +122,41 @@ class ButtonBar(QToolBar):
                 tool_text=action["description"],
             )
 
-        self.addSeparator()
-        self.addAction(
-            name="zoom-in",
-            display_name=_("Zoom-in"),
-            tool_text=_("Zoom in (to make the text bigger)."),
-        )
-        self.addAction(
-            name="zoom-out",
-            display_name=_("Zoom-out"),
-            tool_text=_("Zoom out (to make the text smaller)."),
-        )
-        self.addAction(
-            name="theme",
-            display_name=_("Theme"),
-            tool_text=_(
-                "Toggle theme between day, night or " "high contrast."
-            ),
-        )
-        self.addSeparator()
-        self.addAction(
-            name="check",
-            display_name=_("Check"),
-            tool_text=_("Check your code for mistakes."),
-        )
-        if sys.version_info[:2] >= (3, 6):
-            self.addAction(
-                name="tidy",
-                display_name=_("Tidy"),
-                tool_text=_("Tidy up the layout of your code."),
-            )
-        self.addAction(
-            name="help",
-            display_name=_("Help"),
-            tool_text=_("Show help about Mu in a browser."),
-        )
+        # self.addSeparator()
+        # self.addAction(
+        #     name="zoom-in",
+        #     display_name=_("Zoom-in"),
+        #     tool_text=_("Zoom in (to make the text bigger)."),
+        # )
+        # self.addAction(
+        #     name="zoom-out",
+        #     display_name=_("Zoom-out"),
+        #     tool_text=_("Zoom out (to make the text smaller)."),
+        # )
+        # self.addAction(
+        #     name="theme",
+        #     display_name=_("Theme"),
+        #     tool_text=_(
+        #         "Toggle theme between day, night or " "high contrast."
+        #     ),
+        # )
+        # self.addSeparator()
+        # self.addAction(
+        #     name="check",
+        #     display_name=_("Check"),
+        #     tool_text=_("Check your code for mistakes."),
+        # )
+        # if sys.version_info[:2] >= (3, 6):
+        #     self.addAction(
+        #         name="tidy",
+        #         display_name=_("Tidy"),
+        #         tool_text=_("Tidy up the layout of your code."),
+        #     )
+        # self.addAction(
+        #     name="help",
+        #     display_name=_("Help"),
+        #     tool_text=_("Show help about Mu in a browser."),
+        # )
         self.addSeparator()
         self.addAction(
             name="quit", display_name=_("Quit"), tool_text=_("Quit Mu.")
@@ -434,7 +432,7 @@ class Window(QMainWindow):
         Adds a tab with the referenced path and text to the editor.
         """
         new_tab = EditorPane(path, text, newline)
-        new_tab.connect_margin(self.breakpoint_toggle)
+        # new_tab.connect_margin(self.breakpoint_toggle)
         new_tab_index = self.tabs.addTab(new_tab, new_tab.label)
         new_tab.set_api(api)
 
@@ -819,7 +817,7 @@ class Window(QMainWindow):
             new_icon = "theme"
         for widget in self.widgets:
             widget.set_theme(new_theme)
-        self.button_bar.slots["theme"].setIcon(load_icon(new_icon))
+        # self.button_bar.slots["theme"].setIcon(load_icon(new_icon))
         if hasattr(self, "repl") and self.repl:
             self.repl_pane.set_theme(theme)
         if hasattr(self, "plotter") and self.plotter:
@@ -968,7 +966,8 @@ class Window(QMainWindow):
         """
         self.current_tab.show_annotations()
 
-    def setup(self, breakpoint_toggle, theme):
+    # def setup(self, breakpoint_toggle, theme):
+    def setup(self, theme):
         """
         Sets up the window.
 
@@ -976,7 +975,7 @@ class Window(QMainWindow):
         interface is laid out.
         """
         self.theme = theme
-        self.breakpoint_toggle = breakpoint_toggle
+        # self.breakpoint_toggle = breakpoint_toggle
         # Give the window a default icon, title and minimum size.
         self.setWindowIcon(load_icon(self.icon))
         self.update_title()

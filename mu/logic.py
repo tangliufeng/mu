@@ -38,7 +38,7 @@ from PyQt5 import QtCore
 from pyflakes.api import check
 from pycodestyle import StyleGuide, Checker
 from mu.resources import path
-from mu.debugger.utils import is_breakpoint_line
+# from mu.debugger.utils import is_breakpoint_line
 from mu import __version__
 
 
@@ -846,7 +846,7 @@ class Editor(QObject):
         self._view = view
         self.fs = None
         self.theme = "day"
-        self.mode = "python"
+        self.mode = "esp"
         self.modes = {}
         self.envars = []  # See restore session and show_admin
         self.minify = False
@@ -883,44 +883,44 @@ class Editor(QObject):
         self.connected_devices.modes = modes
         logger.info("Available modes: {}".format(", ".join(self.modes.keys())))
         # Ensure there is a workspace directory.
-        wd = self.modes["python"].workspace_dir()
-        if not os.path.exists(wd):
-            logger.debug("Creating directory: {}".format(wd))
-            os.makedirs(wd)
+        # wd = self.modes["python"].workspace_dir()
+        # if not os.path.exists(wd):
+        #     logger.debug("Creating directory: {}".format(wd))
+        #     os.makedirs(wd)
         # Ensure PyGameZero assets are copied over.
-        images_path = os.path.join(wd, "images")
-        fonts_path = os.path.join(wd, "fonts")
-        sounds_path = os.path.join(wd, "sounds")
-        music_path = os.path.join(wd, "music")
-        if not os.path.exists(images_path):
-            logger.debug("Creating directory: {}".format(images_path))
-            os.makedirs(images_path)
-            for img in DEFAULT_IMAGES:
-                shutil.copy(
-                    path(img, "pygamezero/"), os.path.join(images_path, img)
-                )
-        if not os.path.exists(fonts_path):
-            logger.debug("Creating directory: {}".format(fonts_path))
-            os.makedirs(fonts_path)
-        if not os.path.exists(sounds_path):
-            logger.debug("Creating directory: {}".format(sounds_path))
-            os.makedirs(sounds_path)
-            for sfx in DEFAULT_SOUNDS:
-                shutil.copy(
-                    path(sfx, "pygamezero/"), os.path.join(sounds_path, sfx)
-                )
-        if not os.path.exists(music_path):
-            logger.debug("Creating directory: {}".format(music_path))
-            os.makedirs(music_path)
-        # Ensure Web based assets are copied over.
-        template_path = os.path.join(wd, "templates")
-        static_path = os.path.join(wd, "static")
-        if not os.path.exists(template_path):
-            logger.debug("Creating directory: {}".format(template_path))
-            shutil.copytree(path("templates", "web/"), template_path)
-        if not os.path.exists(static_path):
-            logger.debug("Creating directory: {}".format(static_path))
-            shutil.copytree(path("static", "web/"), static_path)
+        # images_path = os.path.join(wd, "images")
+        # fonts_path = os.path.join(wd, "fonts")
+        # sounds_path = os.path.join(wd, "sounds")
+        # music_path = os.path.join(wd, "music")
+        # if not os.path.exists(images_path):
+        #     logger.debug("Creating directory: {}".format(images_path))
+        #     os.makedirs(images_path)
+        #     for img in DEFAULT_IMAGES:
+        #         shutil.copy(
+        #             path(img, "pygamezero/"), os.path.join(images_path, img)
+        #         )
+        # if not os.path.exists(fonts_path):
+        #     logger.debug("Creating directory: {}".format(fonts_path))
+        #     os.makedirs(fonts_path)
+        # if not os.path.exists(sounds_path):
+        #     logger.debug("Creating directory: {}".format(sounds_path))
+        #     os.makedirs(sounds_path)
+        #     for sfx in DEFAULT_SOUNDS:
+        #         shutil.copy(
+        #             path(sfx, "pygamezero/"), os.path.join(sounds_path, sfx)
+        #         )
+        # if not os.path.exists(music_path):
+        #     logger.debug("Creating directory: {}".format(music_path))
+        #     os.makedirs(music_path)
+        # # Ensure Web based assets are copied over.
+        # template_path = os.path.join(wd, "templates")
+        # static_path = os.path.join(wd, "static")
+        # if not os.path.exists(template_path):
+        #     logger.debug("Creating directory: {}".format(template_path))
+        #     shutil.copytree(path("templates", "web/"), template_path)
+        # if not os.path.exists(static_path):
+        #     logger.debug("Creating directory: {}".format(static_path))
+        #     shutil.copytree(path("static", "web/"), static_path)
             # Copy all the static directories.
         # Start the timer to poll every second for an attached or removed
         # USB device.
@@ -1573,6 +1573,7 @@ class Editor(QObject):
         editor into the new mode.
         """
         # Remove the old mode's REPL / filesystem / plotter if required.
+
         old_mode = self.modes[self.mode]
         if hasattr(old_mode, "remove_repl"):
             old_mode.remove_repl()
@@ -1591,20 +1592,20 @@ class Editor(QObject):
         self._view.change_mode(self.modes[mode])
         button_bar = self._view.button_bar
         button_bar.connect("modes", self.select_mode, "Ctrl+Shift+M")
-        button_bar.connect("new", self.new, "Ctrl+N")
-        button_bar.connect("load", self.load, "Ctrl+O")
-        button_bar.connect("save", self.save, "Ctrl+S")
+        # button_bar.connect("new", self.new, "Ctrl+N")
+        # button_bar.connect("load", self.load, "Ctrl+O")
+        # button_bar.connect("save", self.save, "Ctrl+S")
         for action in self.modes[mode].actions():
             button_bar.connect(
                 action["name"], action["handler"], action["shortcut"]
             )
-        button_bar.connect("zoom-in", self.zoom_in, "Ctrl++")
-        button_bar.connect("zoom-out", self.zoom_out, "Ctrl+-")
-        button_bar.connect("theme", self.toggle_theme, "F1")
-        button_bar.connect("check", self.check_code, "F2")
-        if sys.version_info[:2] >= (3, 6):
-            button_bar.connect("tidy", self.tidy_code, "F10")
-        button_bar.connect("help", self.show_help, "Ctrl+H")
+        # button_bar.connect("zoom-in", self.zoom_in, "Ctrl++")
+        # button_bar.connect("zoom-out", self.zoom_out, "Ctrl+-")
+        # button_bar.connect("theme", self.toggle_theme, "F1")
+        # button_bar.connect("check", self.check_code, "F2")
+        # if sys.version_info[:2] >= (3, 6):
+        #     button_bar.connect("tidy", self.tidy_code, "F10")
+        # button_bar.connect("help", self.show_help, "Ctrl+H")
         button_bar.connect("quit", self.quit, "Ctrl+Q")
         self._view.status_bar.set_mode(self.modes[mode].name)
         # Update references to default file locations.
@@ -1688,36 +1689,36 @@ class Editor(QObject):
         """
         self._view.status_bar.set_message(message, duration * 1000)
 
-    def debug_toggle_breakpoint(self, margin, line, modifiers):
-        """
-        How to handle the toggling of a breakpoint.
-        """
-        if (
-            self.modes[self.mode].has_debugger
-            or self.modes[self.mode].is_debugger
-        ):
-            tab = self._view.current_tab
-            code = tab.text(line)
-            if self.mode == "debugger":
-                # The debugger is running.
-                if is_breakpoint_line(code):
-                    self.modes["debugger"].toggle_breakpoint(line, tab)
-                    return
-            else:
-                # The debugger isn't running.
-                if tab.markersAtLine(line):
-                    tab.markerDelete(line, -1)
-                    return
-                elif is_breakpoint_line(code):
-                    handle = tab.markerAdd(line, tab.BREAKPOINT_MARKER)
-                    tab.breakpoint_handles.add(handle)
-                    return
-            msg = _("Cannot Set Breakpoint.")
-            info = _(
-                "Lines that are comments or some multi-line "
-                "statements cannot have breakpoints."
-            )
-            self._view.show_message(msg, info)
+    # def debug_toggle_breakpoint(self, margin, line, modifiers):
+    #     """
+    #     How to handle the toggling of a breakpoint.
+    #     """
+    #     if (
+    #         self.modes[self.mode].has_debugger
+    #         or self.modes[self.mode].is_debugger
+    #     ):
+    #         tab = self._view.current_tab
+    #         code = tab.text(line)
+    #         if self.mode == "debugger":
+    #             # The debugger is running.
+    #             if is_breakpoint_line(code):
+    #                 self.modes["debugger"].toggle_breakpoint(line, tab)
+    #                 return
+    #         else:
+    #             # The debugger isn't running.
+    #             if tab.markersAtLine(line):
+    #                 tab.markerDelete(line, -1)
+    #                 return
+    #             elif is_breakpoint_line(code):
+    #                 handle = tab.markerAdd(line, tab.BREAKPOINT_MARKER)
+    #                 tab.breakpoint_handles.add(handle)
+    #                 return
+    #         msg = _("Cannot Set Breakpoint.")
+    #         info = _(
+    #             "Lines that are comments or some multi-line "
+    #             "statements cannot have breakpoints."
+    #         )
+    #         self._view.show_message(msg, info)
 
     def rename_tab(self, tab_id=None):
         """
