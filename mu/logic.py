@@ -755,7 +755,7 @@ class DeviceList(QtCore.QAbstractListModel):
         if role == QtCore.Qt.ToolTipRole:
             return str(device)
         elif role == QtCore.Qt.DisplayRole:
-            return device.name
+            return device.port
 
     def add_device(self, new_device):
         """
@@ -937,6 +937,7 @@ class Editor(QObject):
         self.connected_devices.device_connected.connect(
             status_bar.device_connected
         )
+        self.connected_devices.device_disconnected.connect(status_bar.device_disconnected)
         # Connect to device list
         device_selector = status_bar.device_selector
         status_bar.device_selector.set_device_list(self.connected_devices)

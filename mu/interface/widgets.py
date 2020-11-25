@@ -61,7 +61,7 @@ class DeviceSelector(QWidget):
         # Device selection combobox
         self.selector = QComboBox()
         self.selector.setSizeAdjustPolicy(QComboBox.AdjustToContents)
-        self.selector.setHidden(True)
+        self.selector.setHidden(False)
         self.selector.currentIndexChanged.connect(self._device_changed)
         layout.addWidget(self.selector)
 
@@ -130,10 +130,10 @@ class DeviceSelector(QWidget):
         num_devices = self.selector.count()
 
         # Hide/show menu
-        if num_devices <= 1:
-            self.selector.setHidden(True)
-        else:
-            self.selector.setHidden(False)
+        # if num_devices <= 1:
+        #     self.selector.setHidden(True)
+        # else:
+        #     self.selector.setHidden(False)
 
         # Update status_label
         if self.status_label:
@@ -142,7 +142,7 @@ class DeviceSelector(QWidget):
                 self.status_label.setText(("No device connected."))
             elif num_devices == 1:
                 device = self.selected_device()
-                self.status_label.setHidden(False)
+                # self.status_label.setHidden(False)
                 self.status_label.setText(
                     "{} ({})".format(device.name, device.port)
                 )

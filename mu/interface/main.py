@@ -1228,11 +1228,20 @@ class StatusBar(QStatusBar):
         """
         Show a tooltip whenever a new device connects
         """
-        if device.board_name:
-            msg = ("Detected new {} device: {}.").format(
-                device.long_mode_name, device.board_name
-            )
-        else:
-            msg = ("Detected new {} device.").format(device.long_mode_name)
+    
+        msg = ("Detected new device: {}.").format(
+            device.port
+        )
+
 
         self.set_message(msg, self.msg_duration * 1000)
+
+
+
+    def device_disconnected(self, device):
+        msg = ("disconenct device: {}.").format(
+            device.port
+        )
+        self.set_message(msg, self.msg_duration * 1000)
+
+
