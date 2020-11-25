@@ -448,7 +448,7 @@ class AdminDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-    def setup(self, log, settings, packages, mode, device_list):
+    def setup(self, log):
         self.setMinimumSize(600, 400)
         self.setWindowTitle(("Mu Administration"))
         widget_layout = QVBoxLayout()

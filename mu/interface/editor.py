@@ -260,14 +260,14 @@ class EditorPane(QsciScintilla):
         self.setUnmatchedBraceBackgroundColor(theme.UnmatchedBraceBackground)
         self.setUnmatchedBraceForegroundColor(theme.UnmatchedBraceForeground)
 
-    def set_api(self, api_definitions):
-        """
-        Sets the API entries for tooltips, calltips and the like.
-        """
-        self.api = QsciAPIs(self.lexer)
-        for entry in api_definitions:
-            self.api.add(entry)
-        self.api.prepare()
+    # def set_api(self, api_definitions):
+    #     """
+    #     Sets the API entries for tooltips, calltips and the like.
+    #     """
+    #     self.api = QsciAPIs(self.lexer)
+    #     for entry in api_definitions:
+    #         self.api.add(entry)
+    #     self.api.prepare()
 
     def set_zoom(self, size="m"):
         """

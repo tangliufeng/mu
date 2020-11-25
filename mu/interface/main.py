@@ -409,21 +409,21 @@ class Window(QMainWindow):
         logger.debug("Getting save path: {}".format(path))
         return path
 
-    def get_microbit_path(self, folder):
-        """
-        Displays a dialog for locating the location of the BBC micro:bit in the
-        host computer's filesystem. Returns the selected path. Defaults to
-        start in the referenced folder.
-        """
-        path = QFileDialog.getExistingDirectory(
-            self.widget,
-            "Locate BBC micro:bit",
-            folder if self.previous_folder is None else self.previous_folder,
-            QFileDialog.ShowDirsOnly,
-        )
-        self.previous_folder = os.path.dirname(path)
-        logger.debug("Getting micro:bit path: {}".format(path))
-        return path
+    # def get_microbit_path(self, folder):
+    #     """
+    #     Displays a dialog for locating the location of the BBC micro:bit in the
+    #     host computer's filesystem. Returns the selected path. Defaults to
+    #     start in the referenced folder.
+    #     """
+    #     path = QFileDialog.getExistingDirectory(
+    #         self.widget,
+    #         "Locate BBC micro:bit",
+    #         folder if self.previous_folder is None else self.previous_folder,
+    #         QFileDialog.ShowDirsOnly,
+    #     )
+    #     self.previous_folder = os.path.dirname(path)
+    #     logger.debug("Getting micro:bit path: {}".format(path))
+    #     return path
 
     def add_tab(self, path, text, api, newline):
         """
@@ -432,7 +432,7 @@ class Window(QMainWindow):
         new_tab = EditorPane(path, text, newline)
         # new_tab.connect_margin(self.breakpoint_toggle)
         new_tab_index = self.tabs.addTab(new_tab, new_tab.label)
-        new_tab.set_api(api)
+        # new_tab.set_api(api)
 
         @new_tab.modificationChanged.connect
         def on_modified():
@@ -495,40 +495,40 @@ class Window(QMainWindow):
         """
         self.data_received.emit(data)
 
-    def add_filesystem(self, home, file_manager, board_name="board"):
-        """
-        Adds the file system pane to the application.
-        """
-        self.fs_pane = FileSystemPane(home)
+    # def add_filesystem(self, home, file_manager, board_name="board"):
+    #     """
+    #     Adds the file system pane to the application.
+    #     """
+    #     self.fs_pane = FileSystemPane(home)
 
-        @self.fs_pane.open_file.connect
-        def on_open_file(file):
-            # Bubble the signal up
-            self.open_file.emit(file)
+        # @self.fs_pane.open_file.connect
+        # def on_open_file(file):
+        #     # Bubble the signal up
+        #     self.open_file.emit(file)
 
-        self.fs = QDockWidget(("Filesystem on ") + board_name)
-        self.fs.setWidget(self.fs_pane)
-        self.fs.setFeatures(QDockWidget.DockWidgetMovable)
-        self.fs.setAllowedAreas(Qt.BottomDockWidgetArea)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self.fs)
-        self.fs_pane.setFocus()
-        file_manager.on_list_files.connect(self.fs_pane.on_ls)
-        self.fs_pane.list_files.connect(file_manager.ls)
-        self.fs_pane.microbit_fs.put.connect(file_manager.put)
-        self.fs_pane.microbit_fs.delete.connect(file_manager.delete)
-        self.fs_pane.microbit_fs.list_files.connect(file_manager.ls)
-        self.fs_pane.local_fs.get.connect(file_manager.get)
-        self.fs_pane.local_fs.put.connect(file_manager.put)
-        self.fs_pane.local_fs.list_files.connect(file_manager.ls)
-        file_manager.on_put_file.connect(self.fs_pane.microbit_fs.on_put)
-        file_manager.on_delete_file.connect(self.fs_pane.microbit_fs.on_delete)
-        file_manager.on_get_file.connect(self.fs_pane.local_fs.on_get)
-        file_manager.on_list_fail.connect(self.fs_pane.on_ls_fail)
-        file_manager.on_put_fail.connect(self.fs_pane.on_put_fail)
-        file_manager.on_delete_fail.connect(self.fs_pane.on_delete_fail)
-        file_manager.on_get_fail.connect(self.fs_pane.on_get_fail)
-        self.connect_zoom(self.fs_pane)
-        return self.fs_pane
+        # self.fs = QDockWidget(("Filesystem on ") + board_name)
+        # self.fs.setWidget(self.fs_pane)
+        # self.fs.setFeatures(QDockWidget.DockWidgetMovable)
+        # self.fs.setAllowedAreas(Qt.BottomDockWidgetArea)
+        # self.addDockWidget(Qt.BottomDockWidgetArea, self.fs)
+        # self.fs_pane.setFocus()
+        # file_manager.on_list_files.connect(self.fs_pane.on_ls)
+        # self.fs_pane.list_files.connect(file_manager.ls)
+        # self.fs_pane.microbit_fs.put.connect(file_manager.put)
+        # self.fs_pane.microbit_fs.delete.connect(file_manager.delete)
+        # self.fs_pane.microbit_fs.list_files.connect(file_manager.ls)
+        # self.fs_pane.local_fs.get.connect(file_manager.get)
+        # self.fs_pane.local_fs.put.connect(file_manager.put)
+        # self.fs_pane.local_fs.list_files.connect(file_manager.ls)
+        # file_manager.on_put_file.connect(self.fs_pane.microbit_fs.on_put)
+        # file_manager.on_delete_file.connect(self.fs_pane.microbit_fs.on_delete)
+        # file_manager.on_get_file.connect(self.fs_pane.local_fs.on_get)
+        # file_manager.on_list_fail.connect(self.fs_pane.on_ls_fail)
+        # file_manager.on_put_fail.connect(self.fs_pane.on_put_fail)
+        # file_manager.on_delete_fail.connect(self.fs_pane.on_delete_fail)
+        # file_manager.on_get_fail.connect(self.fs_pane.on_get_fail)
+        # self.connect_zoom(self.fs_pane)
+        # return self.fs_pane
 
     def add_micropython_repl(self, name, connection):
         """
@@ -589,173 +589,173 @@ class Window(QMainWindow):
         self.repl_pane.set_theme(self.theme)
         self.repl_pane.setFocus()
 
-    def add_plotter(self, plotter_pane, name):
-        """
-        Adds the referenced plotter pane to the application.
-        """
-        self.plotter_pane = plotter_pane
-        self.plotter = QDockWidget(("{} Plotter").format(name))
-        self.plotter.setWidget(plotter_pane)
-        self.plotter.setFeatures(QDockWidget.DockWidgetMovable)
-        self.plotter.setAllowedAreas(
-            Qt.BottomDockWidgetArea
-            | Qt.LeftDockWidgetArea
-            | Qt.RightDockWidgetArea
-        )
-        self.addDockWidget(Qt.BottomDockWidgetArea, self.plotter)
-        self.plotter_pane.set_theme(self.theme)
-        self.plotter_pane.setFocus()
+    # def add_plotter(self, plotter_pane, name):
+    #     """
+    #     Adds the referenced plotter pane to the application.
+    #     """
+    #     self.plotter_pane = plotter_pane
+    #     self.plotter = QDockWidget(("{} Plotter").format(name))
+    #     self.plotter.setWidget(plotter_pane)
+    #     self.plotter.setFeatures(QDockWidget.DockWidgetMovable)
+    #     self.plotter.setAllowedAreas(
+    #         Qt.BottomDockWidgetArea
+    #         | Qt.LeftDockWidgetArea
+    #         | Qt.RightDockWidgetArea
+    #     )
+    #     self.addDockWidget(Qt.BottomDockWidgetArea, self.plotter)
+    #     self.plotter_pane.set_theme(self.theme)
+    #     self.plotter_pane.setFocus()
 
-    def add_python3_runner(
-        self,
-        script_name,
-        working_directory,
-        interactive=False,
-        debugger=False,
-        command_args=None,
-        runner=None,
-        envars=None,
-        python_args=None,
-    ):
-        """
-        Display console output for the referenced Python script.
+    # def add_python3_runner(
+    #     self,
+    #     script_name,
+    #     working_directory,
+    #     interactive=False,
+    #     debugger=False,
+    #     command_args=None,
+    #     runner=None,
+    #     envars=None,
+    #     python_args=None,
+    # ):
+    #     """
+    #     Display console output for the referenced Python script.
 
-        The script will be run within the workspace_path directory.
+    #     The script will be run within the workspace_path directory.
 
-        If interactive is True (default is False) the Python process will
-        run in interactive mode (dropping the user into the REPL when the
-        script completes).
+    #     If interactive is True (default is False) the Python process will
+    #     run in interactive mode (dropping the user into the REPL when the
+    #     script completes).
 
-        If debugger is True (default is False) the script will be run within
-        a debug runner session. The debugger overrides the interactive flag
-        (you cannot run the debugger in interactive mode).
+    #     If debugger is True (default is False) the script will be run within
+    #     a debug runner session. The debugger overrides the interactive flag
+    #     (you cannot run the debugger in interactive mode).
 
-        If there is a list of command_args (the default is None) then these
-        will be passed as further arguments into the command run in the
-        new process.
+    #     If there is a list of command_args (the default is None) then these
+    #     will be passed as further arguments into the command run in the
+    #     new process.
 
-        If runner is given, this is used as the command to start the Python
-        process.
+    #     If runner is given, this is used as the command to start the Python
+    #     process.
 
-        If envars is given, these will become part of the environment context
-        of the new chlid process.
+    #     If envars is given, these will become part of the environment context
+    #     of the new chlid process.
 
-        If python_args is given, these will be passed as arguments to the
-        Python runtime used to launch the child process.
-        """
-        self.process_runner = PythonProcessPane(self)
-        self.runner = QDockWidget(
-            ("Running: {}").format(os.path.basename(script_name))
-        )
-        self.runner.setWidget(self.process_runner)
-        self.runner.setFeatures(QDockWidget.DockWidgetMovable)
-        self.runner.setAllowedAreas(
-            Qt.BottomDockWidgetArea
-            | Qt.LeftDockWidgetArea
-            | Qt.RightDockWidgetArea
-        )
-        self.addDockWidget(Qt.BottomDockWidgetArea, self.runner)
-        self.process_runner.start_process(
-            script_name,
-            working_directory,
-            interactive,
-            debugger,
-            command_args,
-            envars,
-            runner,
-            python_args,
-        )
-        self.process_runner.setFocus()
-        self.process_runner.on_append_text.connect(self.on_stdout_write)
-        self.connect_zoom(self.process_runner)
-        return self.process_runner
+    #     If python_args is given, these will be passed as arguments to the
+    #     Python runtime used to launch the child process.
+    #     """
+    #     self.process_runner = PythonProcessPane(self)
+    #     self.runner = QDockWidget(
+    #         ("Running: {}").format(os.path.basename(script_name))
+    #     )
+    #     self.runner.setWidget(self.process_runner)
+    #     self.runner.setFeatures(QDockWidget.DockWidgetMovable)
+    #     self.runner.setAllowedAreas(
+    #         Qt.BottomDockWidgetArea
+    #         | Qt.LeftDockWidgetArea
+    #         | Qt.RightDockWidgetArea
+    #     )
+    #     self.addDockWidget(Qt.BottomDockWidgetArea, self.runner)
+    #     self.process_runner.start_process(
+    #         script_name,
+    #         working_directory,
+    #         interactive,
+    #         debugger,
+    #         command_args,
+    #         envars,
+    #         runner,
+    #         python_args,
+    #     )
+    #     self.process_runner.setFocus()
+    #     self.process_runner.on_append_text.connect(self.on_stdout_write)
+    #     self.connect_zoom(self.process_runner)
+    #     return self.process_runner
 
-    def add_debug_inspector(self):
-        """
-        Display a debug inspector to view the call stack.
-        """
-        self.debug_inspector = DebugInspector()
-        self.debug_model = QStandardItemModel()
-        self.debug_inspector.setModel(self.debug_model)
-        self.inspector = QDockWidget(("Debug Inspector"))
-        self.inspector.setWidget(self.debug_inspector)
-        self.inspector.setFeatures(QDockWidget.DockWidgetMovable)
-        self.inspector.setAllowedAreas(
-            Qt.BottomDockWidgetArea
-            | Qt.LeftDockWidgetArea
-            | Qt.RightDockWidgetArea
-        )
-        self.addDockWidget(Qt.RightDockWidgetArea, self.inspector)
-        self.connect_zoom(self.debug_inspector)
+    # def add_debug_inspector(self):
+    #     """
+    #     Display a debug inspector to view the call stack.
+    #     """
+    #     self.debug_inspector = DebugInspector()
+    #     self.debug_model = QStandardItemModel()
+    #     self.debug_inspector.setModel(self.debug_model)
+    #     self.inspector = QDockWidget(("Debug Inspector"))
+    #     self.inspector.setWidget(self.debug_inspector)
+    #     self.inspector.setFeatures(QDockWidget.DockWidgetMovable)
+    #     self.inspector.setAllowedAreas(
+    #         Qt.BottomDockWidgetArea
+    #         | Qt.LeftDockWidgetArea
+    #         | Qt.RightDockWidgetArea
+    #     )
+    #     self.addDockWidget(Qt.RightDockWidgetArea, self.inspector)
+    #     self.connect_zoom(self.debug_inspector)
 
-    def update_debug_inspector(self, locals_dict):
-        """
-        Given the contents of a dict representation of the locals in the
-        current stack frame, update the debug inspector with the new values.
-        """
-        excluded_names = ["__builtins__", "__debug_code__", "__debug_script__"]
-        names = sorted([x for x in locals_dict if x not in excluded_names])
-        self.debug_model.clear()
-        self.debug_model.setHorizontalHeaderLabels([("Name"), ("Value")])
-        for name in names:
-            try:
-                # DANGER!
-                val = eval(locals_dict[name])
-            except Exception:
-                val = None
-            if isinstance(val, list):
-                # Show a list consisting of rows of position/value
-                list_item = DebugInspectorItem(name)
-                for i, i_val in enumerate(val):
-                    list_item.appendRow(
-                        [
-                            DebugInspectorItem(str(i)),
-                            DebugInspectorItem(repr(i_val)),
-                        ]
-                    )
-                self.debug_model.appendRow(
-                    [
-                        list_item,
-                        DebugInspectorItem(
-                            ("(A list of {} items.)").format(len(val))
-                        ),
-                    ]
-                )
-            elif isinstance(val, dict):
-                # Show a dict consisting of rows of key/value pairs.
-                dict_item = DebugInspectorItem(name)
-                for k, k_val in val.items():
-                    dict_item.appendRow(
-                        [
-                            DebugInspectorItem(repr(k)),
-                            DebugInspectorItem(repr(k_val)),
-                        ]
-                    )
-                self.debug_model.appendRow(
-                    [
-                        dict_item,
-                        DebugInspectorItem(
-                            ("(A dict of {} items.)").format(len(val))
-                        ),
-                    ]
-                )
-            else:
-                self.debug_model.appendRow(
-                    [
-                        DebugInspectorItem(name),
-                        DebugInspectorItem(locals_dict[name]),
-                    ]
-                )
+    # def update_debug_inspector(self, locals_dict):
+    #     """
+    #     Given the contents of a dict representation of the locals in the
+    #     current stack frame, update the debug inspector with the new values.
+    #     """
+    #     excluded_names = ["__builtins__", "__debug_code__", "__debug_script__"]
+    #     names = sorted([x for x in locals_dict if x not in excluded_names])
+    #     self.debug_model.clear()
+    #     self.debug_model.setHorizontalHeaderLabels([("Name"), ("Value")])
+    #     for name in names:
+    #         try:
+    #             # DANGER!
+    #             val = eval(locals_dict[name])
+    #         except Exception:
+    #             val = None
+    #         if isinstance(val, list):
+    #             # Show a list consisting of rows of position/value
+    #             list_item = DebugInspectorItem(name)
+    #             for i, i_val in enumerate(val):
+    #                 list_item.appendRow(
+    #                     [
+    #                         DebugInspectorItem(str(i)),
+    #                         DebugInspectorItem(repr(i_val)),
+    #                     ]
+    #                 )
+    #             self.debug_model.appendRow(
+    #                 [
+    #                     list_item,
+    #                     DebugInspectorItem(
+    #                         ("(A list of {} items.)").format(len(val))
+    #                     ),
+    #                 ]
+    #             )
+    #         elif isinstance(val, dict):
+    #             # Show a dict consisting of rows of key/value pairs.
+    #             dict_item = DebugInspectorItem(name)
+    #             for k, k_val in val.items():
+    #                 dict_item.appendRow(
+    #                     [
+    #                         DebugInspectorItem(repr(k)),
+    #                         DebugInspectorItem(repr(k_val)),
+    #                     ]
+    #                 )
+    #             self.debug_model.appendRow(
+    #                 [
+    #                     dict_item,
+    #                     DebugInspectorItem(
+    #                         ("(A dict of {} items.)").format(len(val))
+    #                     ),
+    #                 ]
+    #             )
+    #         else:
+    #             self.debug_model.appendRow(
+    #                 [
+    #                     DebugInspectorItem(name),
+    #                     DebugInspectorItem(locals_dict[name]),
+    #                 ]
+    #             )
 
-    def remove_filesystem(self):
-        """
-        Removes the file system pane from the application.
-        """
-        if hasattr(self, "fs") and self.fs:
-            self.fs_pane = None
-            self.fs.setParent(None)
-            self.fs.deleteLater()
-            self.fs = None
+    # def remove_filesystem(self):
+    #     """
+    #     Removes the file system pane from the application.
+    #     """
+    #     if hasattr(self, "fs") and self.fs:
+    #         self.fs_pane = None
+    #         self.fs.setParent(None)
+    #         self.fs.deleteLater()
+    #         self.fs = None
 
     def remove_repl(self):
         """
@@ -767,36 +767,36 @@ class Window(QMainWindow):
             self.repl.deleteLater()
             self.repl = None
 
-    def remove_plotter(self):
-        """
-        Removes the plotter pane from the application.
-        """
-        if self.plotter:
-            self.plotter_pane = None
-            self.plotter.setParent(None)
-            self.plotter.deleteLater()
-            self.plotter = None
+    # def remove_plotter(self):
+    #     """
+    #     Removes the plotter pane from the application.
+    #     """
+    #     if self.plotter:
+    #         self.plotter_pane = None
+    #         self.plotter.setParent(None)
+    #         self.plotter.deleteLater()
+    #         self.plotter = None
 
-    def remove_python_runner(self):
-        """
-        Removes the runner pane from the application.
-        """
-        if hasattr(self, "runner") and self.runner:
-            self.process_runner = None
-            self.runner.setParent(None)
-            self.runner.deleteLater()
-            self.runner = None
+    # def remove_python_runner(self):
+    #     """
+    #     Removes the runner pane from the application.
+    #     """
+    #     if hasattr(self, "runner") and self.runner:
+    #         self.process_runner = None
+    #         self.runner.setParent(None)
+    #         self.runner.deleteLater()
+    #         self.runner = None
 
-    def remove_debug_inspector(self):
-        """
-        Removes the debug inspector pane from the application.
-        """
-        if hasattr(self, "inspector") and self.inspector:
-            self.debug_inspector = None
-            self.debug_model = None
-            self.inspector.setParent(None)
-            self.inspector.deleteLater()
-            self.inspector = None
+    # def remove_debug_inspector(self):
+    #     """
+    #     Removes the debug inspector pane from the application.
+    #     """
+    #     if hasattr(self, "inspector") and self.inspector:
+    #         self.debug_inspector = None
+    #         self.debug_model = None
+    #         self.inspector.setParent(None)
+    #         self.inspector.deleteLater()
+    #         self.inspector = None
 
     def set_theme(self, theme):
         """
@@ -835,28 +835,28 @@ class Window(QMainWindow):
 
         timer.start(500)
 
-    def show_admin(self, log, settings, packages, mode, device_list):
+    def show_admin(self, log):
         """
         Display the administrative dialog with referenced content of the log
         and settings. Return a dictionary of the settings that may have been
         changed by the admin dialog.
         """
         admin_box = AdminDialog(self)
-        admin_box.setup(log, settings, packages, mode, device_list)
-        result = admin_box.exec()
-        if result:
-            return admin_box.settings()
-        else:
-            return {}
+        admin_box.setup(log)
+        admin_box.exec()
+        # if result:
+        #     return admin_box.settings()
+        # else:
+        #     return {}
 
-    def sync_packages(self, to_remove, to_add, module_dir):
-        """
-        Display a modal dialog that indicates the status of the add/remove
-        package management operation.
-        """
-        package_box = PackageDialog(self)
-        package_box.setup(to_remove, to_add, module_dir)
-        package_box.exec()
+    # def sync_packages(self, to_remove, to_add, module_dir):
+    #     """
+    #     Display a modal dialog that indicates the status of the add/remove
+    #     package management operation.
+    #     """
+    #     package_box = PackageDialog(self)
+    #     package_box.setup(to_remove, to_add, module_dir)
+    #     package_box.exec()
 
     def show_message(self, message, information=None, icon=None):
         """
