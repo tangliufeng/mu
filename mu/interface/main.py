@@ -55,10 +55,8 @@ from mu.interface.themes import (
 )
 from mu.interface.panes import (
 
-    PythonProcessPane,
     MicroPythonREPLPane,
-    FileSystemPane,
-    # PlotterPane,
+
 )
 from mu.interface.editor import EditorPane
 from mu.interface.widgets import DeviceSelector
@@ -94,24 +92,24 @@ class ButtonBar(QToolBar):
         self.reset()
         self.addAction(
             name="modes",
-            display_name=_("Mode"),
-            tool_text=_("Change Mu's mode of behaviour."),
+            display_name=("Mode"),
+            tool_text=("Change Mu's mode of behaviour."),
         )
         self.addSeparator()
         # self.addAction(
         #     name="new",
-        #     display_name=_("New"),
-        #     tool_text=_("Create a new Python script."),
+        #     display_name=("New"),
+        #     tool_text=("Create a new Python script."),
         # )
         # self.addAction(
         #     name="load",
-        #     display_name=_("Load"),
-        #     tool_text=_("Load a Python script."),
+        #     display_name=("Load"),
+        #     tool_text=("Load a Python script."),
         # )
         # self.addAction(
         #     name="save",
-        #     display_name=_("Save"),
-        #     tool_text=_("Save the current Python script."),
+        #     display_name=("Save"),
+        #     tool_text=("Save the current Python script."),
         # )
         # self.addSeparator()
 
@@ -125,17 +123,17 @@ class ButtonBar(QToolBar):
         # self.addSeparator()
         # self.addAction(
         #     name="zoom-in",
-        #     display_name=_("Zoom-in"),
-        #     tool_text=_("Zoom in (to make the text bigger)."),
+        #     display_name=("Zoom-in"),
+        #     tool_text=("Zoom in (to make the text bigger)."),
         # )
         # self.addAction(
         #     name="zoom-out",
-        #     display_name=_("Zoom-out"),
-        #     tool_text=_("Zoom out (to make the text smaller)."),
+        #     display_name=("Zoom-out"),
+        #     tool_text=("Zoom out (to make the text smaller)."),
         # )
         # self.addAction(
         #     name="theme",
-        #     display_name=_("Theme"),
+        #     display_name=("Theme"),
         #     tool_text=_(
         #         "Toggle theme between day, night or " "high contrast."
         #     ),
@@ -143,23 +141,23 @@ class ButtonBar(QToolBar):
         # self.addSeparator()
         # self.addAction(
         #     name="check",
-        #     display_name=_("Check"),
-        #     tool_text=_("Check your code for mistakes."),
+        #     display_name=("Check"),
+        #     tool_text=("Check your code for mistakes."),
         # )
         # if sys.version_info[:2] >= (3, 6):
         #     self.addAction(
         #         name="tidy",
-        #         display_name=_("Tidy"),
-        #         tool_text=_("Tidy up the layout of your code."),
+        #         display_name=("Tidy"),
+        #         tool_text=("Tidy up the layout of your code."),
         #     )
         # self.addAction(
         #     name="help",
-        #     display_name=_("Help"),
-        #     tool_text=_("Show help about Mu in a browser."),
+        #     display_name=("Help"),
+        #     tool_text=("Show help about Mu in a browser."),
         # )
         self.addSeparator()
         self.addAction(
-            name="quit", display_name=_("Quit"), tool_text=_("Quit Mu.")
+            name="quit", display_name=("Quit"), tool_text=("Quit Mu.")
         )
 
     def set_responsive_mode(self, width, height):
@@ -257,7 +255,7 @@ class FileTabs(QTabWidget):
         # Setup our own close button since we are overriding the built in one
         close_btn = QPushButton(container)
         box.addWidget(close_btn)
-        close_btn.setToolTip(_("Close file"))
+        close_btn.setToolTip(("Close file"))
         close_btn.setFlat(True)
         # Bit of a weird size but we want to avoid giant tabs
         close_btn.setIconSize(QSize(10, 10))
@@ -299,7 +297,7 @@ class Window(QMainWindow):
     Defines the look and characteristics of the application's main window.
     """
 
-    title = _("Mu {}").format(__version__)
+    title = ("Mu {}").format(__version__)
     icon = "icon"
     timer = None
     usb_checker = None
@@ -508,7 +506,7 @@ class Window(QMainWindow):
             # Bubble the signal up
             self.open_file.emit(file)
 
-        self.fs = QDockWidget(_("Filesystem on ") + board_name)
+        self.fs = QDockWidget(("Filesystem on ") + board_name)
         self.fs.setWidget(self.fs_pane)
         self.fs.setFeatures(QDockWidget.DockWidgetMovable)
         self.fs.setAllowedAreas(Qt.BottomDockWidgetArea)
@@ -540,45 +538,45 @@ class Window(QMainWindow):
         connection.data_received.connect(repl_pane.process_tty_data)
         self.add_repl(repl_pane, name)
 
-    def add_micropython_plotter(self, name, connection, data_flood_handler):
-        """
-        Adds a plotter that reads data from a serial connection.
-        """
-        plotter_pane = PlotterPane()
-        connection.data_received.connect(plotter_pane.process_tty_data)
-        plotter_pane.data_flood.connect(data_flood_handler)
-        self.add_plotter(plotter_pane, name)
+    # def add_micropython_plotter(self, name, connection, data_flood_handler):
+    #     """
+    #     Adds a plotter that reads data from a serial connection.
+    #     """
+    #     plotter_pane = PlotterPane()
+    #     connection.data_received.connect(plotter_pane.process_tty_data)
+    #     plotter_pane.data_flood.connect(data_flood_handler)
+    #     self.add_plotter(plotter_pane, name)
 
-    def add_python3_plotter(self, mode):
-        """
-        Add a plotter that reads from either the REPL or a running script.
-        Since this function will only be called when either the REPL or a
-        running script are running (but not at the same time), it'll just grab
-        data emitted by the REPL or script via data_received.
-        """
-        plotter_pane = PlotterPane()
-        self.data_received.connect(plotter_pane.process_tty_data)
-        plotter_pane.data_flood.connect(mode.on_data_flood)
-        self.add_plotter(plotter_pane, _("Python3 data tuple"))
+    # def add_python3_plotter(self, mode):
+    #     """
+    #     Add a plotter that reads from either the REPL or a running script.
+    #     Since this function will only be called when either the REPL or a
+    #     running script are running (but not at the same time), it'll just grab
+    #     data emitted by the REPL or script via data_received.
+    #     """
+    #     plotter_pane = PlotterPane()
+    #     self.data_received.connect(plotter_pane.process_tty_data)
+    #     plotter_pane.data_flood.connect(mode.on_data_flood)
+    #     self.add_plotter(plotter_pane, ("Python3 data tuple"))
 
-    def add_jupyter_repl(self, kernel_manager, kernel_client):
-        """
-        Adds a Jupyter based REPL pane to the application.
-        """
-        kernel_manager.kernel.gui = "qt4"
-        kernel_client.start_channels()
-        ipython_widget = JupyterREPLPane()
-        ipython_widget.kernel_manager = kernel_manager
-        ipython_widget.kernel_client = kernel_client
-        ipython_widget.on_append_text.connect(self.on_stdout_write)
-        self.add_repl(ipython_widget, _("Python3 (Jupyter)"))
+    # def add_jupyter_repl(self, kernel_manager, kernel_client):
+    #     """
+    #     Adds a Jupyter based REPL pane to the application.
+    #     """
+    #     kernel_manager.kernel.gui = "qt4"
+    #     kernel_client.start_channels()
+    #     ipython_widget = JupyterREPLPane()
+    #     ipython_widget.kernel_manager = kernel_manager
+    #     ipython_widget.kernel_client = kernel_client
+    #     ipython_widget.on_append_text.connect(self.on_stdout_write)
+    #     self.add_repl(ipython_widget, ("Python3 (Jupyter)"))
 
     def add_repl(self, repl_pane, name):
         """
         Adds the referenced REPL pane to the application.
         """
         self.repl_pane = repl_pane
-        self.repl = QDockWidget(_("{} REPL").format(name))
+        self.repl = QDockWidget(("{} REPL").format(name))
         self.repl.setWidget(repl_pane)
         self.repl.setFeatures(QDockWidget.DockWidgetMovable)
         self.repl.setAllowedAreas(
@@ -596,7 +594,7 @@ class Window(QMainWindow):
         Adds the referenced plotter pane to the application.
         """
         self.plotter_pane = plotter_pane
-        self.plotter = QDockWidget(_("{} Plotter").format(name))
+        self.plotter = QDockWidget(("{} Plotter").format(name))
         self.plotter.setWidget(plotter_pane)
         self.plotter.setFeatures(QDockWidget.DockWidgetMovable)
         self.plotter.setAllowedAreas(
@@ -647,7 +645,7 @@ class Window(QMainWindow):
         """
         self.process_runner = PythonProcessPane(self)
         self.runner = QDockWidget(
-            _("Running: {}").format(os.path.basename(script_name))
+            ("Running: {}").format(os.path.basename(script_name))
         )
         self.runner.setWidget(self.process_runner)
         self.runner.setFeatures(QDockWidget.DockWidgetMovable)
@@ -679,7 +677,7 @@ class Window(QMainWindow):
         self.debug_inspector = DebugInspector()
         self.debug_model = QStandardItemModel()
         self.debug_inspector.setModel(self.debug_model)
-        self.inspector = QDockWidget(_("Debug Inspector"))
+        self.inspector = QDockWidget(("Debug Inspector"))
         self.inspector.setWidget(self.debug_inspector)
         self.inspector.setFeatures(QDockWidget.DockWidgetMovable)
         self.inspector.setAllowedAreas(
@@ -698,7 +696,7 @@ class Window(QMainWindow):
         excluded_names = ["__builtins__", "__debug_code__", "__debug_script__"]
         names = sorted([x for x in locals_dict if x not in excluded_names])
         self.debug_model.clear()
-        self.debug_model.setHorizontalHeaderLabels([_("Name"), _("Value")])
+        self.debug_model.setHorizontalHeaderLabels([("Name"), ("Value")])
         for name in names:
             try:
                 # DANGER!
@@ -719,7 +717,7 @@ class Window(QMainWindow):
                     [
                         list_item,
                         DebugInspectorItem(
-                            _("(A list of {} items.)").format(len(val))
+                            ("(A list of {} items.)").format(len(val))
                         ),
                     ]
                 )
@@ -737,7 +735,7 @@ class Window(QMainWindow):
                     [
                         dict_item,
                         DebugInspectorItem(
-                            _("(A dict of {} items.)").format(len(val))
+                            ("(A dict of {} items.)").format(len(val))
                         ),
                     ]
                 )
@@ -900,7 +898,7 @@ class Window(QMainWindow):
         """
         message_box = QMessageBox(self)
         message_box.setText(message)
-        message_box.setWindowTitle(_("Mu"))
+        message_box.setWindowTitle(("Mu"))
         if information:
             message_box.setInformativeText(information)
         if icon and hasattr(message_box, icon):
@@ -1176,7 +1174,7 @@ class StatusBar(QStatusBar):
 
         # Mode selector.
         self.mode_label = QLabel()
-        self.mode_label.setToolTip(_("Mu's current mode of behaviour."))
+        self.mode_label.setToolTip(("Mu's current mode of behaviour."))
         self.addPermanentWidget(self.mode_label)
         self.set_mode(mode)
 
@@ -1189,7 +1187,7 @@ class StatusBar(QStatusBar):
         self.logs_label = QLabel()
         self.logs_label.setObjectName("AdministrationLabel")
         self.logs_label.setPixmap(load_pixmap("logs").scaledToHeight(24))
-        self.logs_label.setToolTip(_("Mu Administration"))
+        self.logs_label.setToolTip(("Mu Administration"))
         self.addPermanentWidget(self.logs_label)
 
     def connect_logs(self, handler, shortcut):
@@ -1231,10 +1229,10 @@ class StatusBar(QStatusBar):
         Show a tooltip whenever a new device connects
         """
         if device.board_name:
-            msg = _("Detected new {} device: {}.").format(
+            msg = ("Detected new {} device: {}.").format(
                 device.long_mode_name, device.board_name
             )
         else:
-            msg = _("Detected new {} device.").format(device.long_mode_name)
+            msg = ("Detected new {} device.").format(device.long_mode_name)
 
         self.set_message(msg, self.msg_duration * 1000)

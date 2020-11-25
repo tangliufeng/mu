@@ -68,7 +68,7 @@ class DeviceSelector(QWidget):
         # Label
         self.status_label = None
         if show_label:
-            self.status_label = QLabel(_("No device connected."))
+            self.status_label = QLabel(("No device connected."))
             self.status_label.setHidden(True)
             layout.addWidget(self.status_label)
             layout.addStretch()
@@ -139,7 +139,7 @@ class DeviceSelector(QWidget):
         if self.status_label:
             if num_devices == 0:
                 self.status_label.setHidden(False)
-                self.status_label.setText(_("No device connected."))
+                self.status_label.setText(("No device connected."))
             elif num_devices == 1:
                 device = self.selected_device()
                 self.status_label.setHidden(False)
@@ -152,7 +152,7 @@ class DeviceSelector(QWidget):
         # Set icon and tooltip
         if num_devices == 0:
             self.connection_status.setPixmap(self.disconnected_icon)
-            self._set_tooltip(_("No device connected."))
+            self._set_tooltip(("No device connected."))
         else:
             self.connection_status.setPixmap(self.connected_icon)
             model = self.selector.model()

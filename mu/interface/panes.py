@@ -57,7 +57,7 @@ from PyQt5.QtGui import (
     QStandardItem,
 )
 
-from mu import language_code
+# from mu import language_code
 from mu.interface.themes import Font
 from mu.interface.themes import DEFAULT_FONT_SIZE
 
@@ -468,856 +468,856 @@ class MicroPythonREPLPane(QTextEdit):
         self.set_font_size(PANE_ZOOM_SIZES[size])
 
 
-class MuFileList(QListWidget):
-    """
-    Contains shared methods for the two types of file listing used in Mu.
-    """
-
-    disable = pyqtSignal()
-    list_files = pyqtSignal()
-    set_message = pyqtSignal(str)
-
-    def show_confirm_overwrite_dialog(self):
-        """
-        Display a dialog to check if an existing file should be overwritten.
-
-        Returns a boolean indication of the user's decision.
-        """
-        msg = QMessageBox(self)
-        msg.setIcon(QMessageBox.Information)
-        msg.setText(_("File already exists; overwrite it?"))
-        msg.setWindowTitle(_("File already exists"))
-        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        return msg.exec_() == QMessageBox.Ok
-
-
-class MicroPythonDeviceFileList(MuFileList):
-    """
-    Represents a list of files on a MicroPython device.
-    """
-
-    put = pyqtSignal(str)
-    delete = pyqtSignal(str)
-
-    def __init__(self, home):
-        super().__init__()
-        self.home = home
-        self.setDragDropMode(QListWidget.DragDrop)
-
-    def dropEvent(self, event):
-        source = event.source()
-        if isinstance(source, LocalFileList):
-            file_exists = self.findItems(
-                source.currentItem().text(), Qt.MatchExactly
-            )
-            if (
-                not file_exists
-                or file_exists
-                and self.show_confirm_overwrite_dialog()
-            ):
-                self.disable.emit()
-                local_filename = os.path.join(
-                    self.home, source.currentItem().text()
-                )
-                msg = _("Copying '{}' to micro:bit.").format(local_filename)
-                logger.info(msg)
-                self.set_message.emit(msg)
-                self.put.emit(local_filename)
-
-    def on_put(self, microbit_file):
-        """
-        Fired when the put event is completed for the given filename.
-        """
-        msg = _("'{}' successfully copied to micro:bit.").format(microbit_file)
-        self.set_message.emit(msg)
-        self.list_files.emit()
-
-    def contextMenuEvent(self, event):
-        menu = QMenu(self)
-        delete_action = menu.addAction(_("Delete (cannot be undone)"))
-        action = menu.exec_(self.mapToGlobal(event.pos()))
-        if action == delete_action:
-            self.disable.emit()
-            microbit_filename = self.currentItem().text()
-            logger.info("Deleting {}".format(microbit_filename))
-            msg = _("Deleting '{}' from micro:bit.").format(microbit_filename)
-            logger.info(msg)
-            self.set_message.emit(msg)
-            self.delete.emit(microbit_filename)
-
-    def on_delete(self, microbit_file):
-        """
-        Fired when the delete event is completed for the given filename.
-        """
-        msg = _("'{}' successfully deleted from micro:bit.").format(
-            microbit_file
-        )
-        self.set_message.emit(msg)
-        self.list_files.emit()
-
-
-class LocalFileList(MuFileList):
-    """
-    Represents a list of files in the Mu directory on the local machine.
-    """
-
-    get = pyqtSignal(str, str)
-    put = pyqtSignal(str, str)
-    open_file = pyqtSignal(str)
-
-    def __init__(self, home):
-        super().__init__()
-        self.home = home
-        self.setDragDropMode(QListWidget.DragDrop)
-
-    def dropEvent(self, event):
-        source = event.source()
-        if isinstance(source, MicroPythonDeviceFileList):
-            file_exists = self.findItems(
-                source.currentItem().text(), Qt.MatchExactly
-            )
-            if (
-                not file_exists
-                or file_exists
-                and self.show_confirm_overwrite_dialog()
-            ):
-                self.disable.emit()
-                microbit_filename = source.currentItem().text()
-                local_filename = os.path.join(self.home, microbit_filename)
-                msg = _(
-                    "Getting '{}' from micro:bit. " "Copying to '{}'."
-                ).format(microbit_filename, local_filename)
-                logger.info(msg)
-                self.set_message.emit(msg)
-                self.get.emit(microbit_filename, local_filename)
-
-    def on_get(self, microbit_file):
-        """
-        Fired when the get event is completed for the given filename.
-        """
-        msg = _(
-            "Successfully copied '{}' " "from the micro:bit to your computer."
-        ).format(microbit_file)
-        self.set_message.emit(msg)
-        self.list_files.emit()
-
-    def contextMenuEvent(self, event):
-        menu = QMenu(self)
-        local_filename = self.currentItem().text()
-        # Get the file extension
-        ext = os.path.splitext(local_filename)[1].lower()
-        open_internal_action = None
-        # Mu micro:bit mode only handles .py & .hex
-        if ext == ".py" or ext == ".hex":
-            open_internal_action = menu.addAction(_("Open in Mu"))
-        if ext == ".py":
-            write_to_main_action = menu.addAction(
-                _("Write to main.py on device")
-            )
-        # Open outside Mu (things get meta if Mu is the default application)
-        open_action = menu.addAction(_("Open"))
-        action = menu.exec_(self.mapToGlobal(event.pos()))
-        if action == open_action:
-            # Get the file's path
-            path = os.path.join(self.home, local_filename)
-            logger.info("Opening {}".format(path))
-            msg = _("Opening '{}'").format(local_filename)
-            logger.info(msg)
-            self.set_message.emit(msg)
-            # Let Qt work out how to open it
-            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
-        elif action == open_internal_action:
-            logger.info("Open {} internally".format(local_filename))
-            # Get the file's path
-            path = os.path.join(self.home, local_filename)
-            # Send the signal bubbling up the tree
-            self.open_file.emit(path)
-        elif action == write_to_main_action:
-            path = os.path.join(self.home, local_filename)
-            self.put.emit(path, "main.py")
-
-
-class FileSystemPane(QFrame):
-    """
-    Contains two QListWidgets representing the micro:bit and the user's code
-    directory. Users transfer files by dragging and dropping. Highlighted files
-    can be selected for deletion.
-    """
-
-    set_message = pyqtSignal(str)
-    set_warning = pyqtSignal(str)
-    list_files = pyqtSignal()
-    open_file = pyqtSignal(str)
-
-    def __init__(self, home):
-        super().__init__()
-        self.home = home
-        self.font = Font().load()
-        microbit_fs = MicroPythonDeviceFileList(home)
-        local_fs = LocalFileList(home)
-
-        @local_fs.open_file.connect
-        def on_open_file(file):
-            # Bubble the signal up
-            self.open_file.emit(file)
-
-        layout = QGridLayout()
-        self.setLayout(layout)
-        microbit_label = QLabel()
-        microbit_label.setText(_("Files on your device:"))
-        local_label = QLabel()
-        local_label.setText(_("Files on your computer:"))
-        self.microbit_label = microbit_label
-        self.local_label = local_label
-        self.microbit_fs = microbit_fs
-        self.local_fs = local_fs
-        self.set_font_size()
-        layout.addWidget(microbit_label, 0, 0)
-        layout.addWidget(local_label, 0, 1)
-        layout.addWidget(microbit_fs, 1, 0)
-        layout.addWidget(local_fs, 1, 1)
-        self.microbit_fs.disable.connect(self.disable)
-        self.microbit_fs.set_message.connect(self.show_message)
-        self.local_fs.disable.connect(self.disable)
-        self.local_fs.set_message.connect(self.show_message)
-
-    def disable(self):
-        """
-        Stops interaction with the list widgets.
-        """
-        self.microbit_fs.setDisabled(True)
-        self.local_fs.setDisabled(True)
-        self.microbit_fs.setAcceptDrops(False)
-        self.local_fs.setAcceptDrops(False)
-
-    def enable(self):
-        """
-        Allows interaction with the list widgets.
-        """
-        self.microbit_fs.setDisabled(False)
-        self.local_fs.setDisabled(False)
-        self.microbit_fs.setAcceptDrops(True)
-        self.local_fs.setAcceptDrops(True)
-
-    def show_message(self, message):
-        """
-        Emits the set_message signal.
-        """
-        self.set_message.emit(message)
-
-    def show_warning(self, message):
-        """
-        Emits the set_warning signal.
-        """
-        self.set_warning.emit(message)
-
-    def on_ls(self, microbit_files):
-        """
-        Displays a list of the files on the micro:bit.
-
-        Since listing files is always the final event in any interaction
-        between Mu and the micro:bit, this enables the controls again for
-        further interactions to take place.
-        """
-        self.microbit_fs.clear()
-        self.local_fs.clear()
-        for f in microbit_files:
-            self.microbit_fs.addItem(f)
-        local_files = [
-            f
-            for f in os.listdir(self.home)
-            if os.path.isfile(os.path.join(self.home, f))
-        ]
-        local_files.sort()
-        for f in local_files:
-            self.local_fs.addItem(f)
-        self.enable()
-
-    def on_ls_fail(self):
-        """
-        Fired when listing files fails.
-        """
-        self.show_warning(
-            _(
-                "There was a problem getting the list of files on "
-                "the device. Please check Mu's logs for "
-                "technical information. Alternatively, try "
-                "unplugging/plugging-in your device and/or "
-                "restarting Mu."
-            )
-        )
-        self.disable()
-
-    def on_put_fail(self, filename):
-        """
-        Fired when the referenced file cannot be copied onto the device.
-        """
-        self.show_warning(
-            _(
-                "There was a problem copying the file '{}' onto "
-                "the device. Please check Mu's logs for "
-                "more information."
-            ).format(filename)
-        )
-
-    def on_delete_fail(self, filename):
-        """
-        Fired when a deletion on the device for the given file failed.
-        """
-        self.show_warning(
-            _(
-                "There was a problem deleting '{}' from the "
-                "device. Please check Mu's logs for "
-                "more information."
-            ).format(filename)
-        )
-
-    def on_get_fail(self, filename):
-        """
-        Fired when getting the referenced file on the device failed.
-        """
-        self.show_warning(
-            _(
-                "There was a problem getting '{}' from the "
-                "device. Please check Mu's logs for "
-                "more information."
-            ).format(filename)
-        )
-
-    def set_theme(self, theme):
-        pass
-
-    def set_font_size(self, new_size=DEFAULT_FONT_SIZE):
-        """
-        Sets the font size for all the textual elements in this pane.
-        """
-        self.font.setPointSize(new_size)
-        self.microbit_label.setFont(self.font)
-        self.local_label.setFont(self.font)
-        self.microbit_fs.setFont(self.font)
-        self.local_fs.setFont(self.font)
-
-    def set_zoom(self, size):
-        """
-        Set the current zoom level given the "t-shirt" size.
-        """
-        self.set_font_size(PANE_ZOOM_SIZES[size])
-
-
-class PythonProcessPane(QTextEdit):
-    """
-    Handles / displays a Python process's stdin/out with working command
-    history and simple buffer editing.
-    """
-
-    on_append_text = pyqtSignal(bytes)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setFont(Font().load())
-        self.setAcceptRichText(False)
-        self.setReadOnly(False)
-        self.setUndoRedoEnabled(False)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.context_menu)
-        self.running = False  # Flag to show the child process is running.
-        self.setObjectName("PythonRunner")
-        self.process = None  # Will eventually reference the running process.
-        self.input_history = []  # history of inputs entered in this session.
-        self.start_of_current_line = 0  # start position of the input line.
-        self.history_position = 0  # current position when navigation history.
-        self.stdout_buffer = b""  # contains non-decoded bytes from stdout.
-        self.reading_stdout = False  # flag showing if already reading stdout.
-
-    def start_process(
-        self,
-        script_name,
-        working_directory,
-        interactive=True,
-        debugger=False,
-        command_args=None,
-        envars=None,
-        runner=None,
-        python_args=None,
-    ):
-        """
-        Start the child Python process.
-
-        Will run the referenced Python script_name within the context of the
-        working directory.
-
-        If interactive is True (the default) the Python process will run in
-        interactive mode (dropping the user into the REPL when the script
-        completes).
-
-        If debugger is True (the default is False) then the script will run
-        within a debug runner session.
-
-        If there is a list of command_args (the default is None), then these
-        will be passed as further arguments into the script to be run.
-
-        If there is a list of environment variables, these will be part of the
-        context of the new child process.
-
-        If runner is given, this is used as the command to start the Python
-        process.
-
-        If python_args is given, these are passed as arguments to the Python
-        runtime used to launch the child process.
-        """
-        if not envars:  # Envars must be a list if not passed a value.
-            envars = []
-        self.script = ""
-        if script_name:
-            self.script = os.path.abspath(os.path.normcase(script_name))
-        logger.info("Running script: {}".format(self.script))
-        if interactive:
-            logger.info("Running with interactive mode.")
-        if command_args is None:
-            command_args = []
-        logger.info("Command args: {}".format(command_args))
-        self.process = QProcess(self)
-        self.process.setProcessChannelMode(QProcess.MergedChannels)
-        # Force buffers to flush immediately.
-        env = QProcessEnvironment.systemEnvironment()
-        env.insert("PYTHONUNBUFFERED", "1")
-        env.insert("PYTHONIOENCODING", "utf-8")
-        if sys.platform == "darwin":
-            # Ensure the correct encoding is set for the environment. If the
-            # following two lines are not set, then Flask will complain about
-            # Python 3 being misconfigured to use ASCII encoding.
-            # See: https://click.palletsprojects.com/en/7.x/python3/
-            encoding = "{}.utf-8".format(language_code)
-            env.insert("LC_ALL", encoding)
-            env.insert("LANG", encoding)
-        if sys.platform == "win32" and "pythonw.exe" in sys.executable:
-            # On Windows, if installed via NSIS then Python is always run in
-            # isolated mode via pythonw.exe so none of the expected directories
-            # are on sys.path. To mitigate, Mu attempts to drop a mu.pth file
-            # in a location taken from Windows based settings. This file will
-            # contain the "other" directories to include on the Python path,
-            # such as the working_directory and, if different from the
-            # working_directory, the directory containing the script to run.
-            try:
-                if site.ENABLE_USER_SITE:
-                    # Ensure the USER_SITE directory exists.
-                    os.makedirs(site.getusersitepackages(), exist_ok=True)
-                    site_path = site.USER_SITE
-                    path_file = os.path.join(site_path, "mu.pth")
-                    logger.info("Python paths set via {}".format(path_file))
-                    # Copy current Python paths. Use a set to avoid
-                    # duplications.
-                    paths_to_use = set([os.path.normcase(p) for p in sys.path])
-                    # Add Mu's working directory.
-                    paths_to_use.add(os.path.normcase(working_directory))
-                    # Add the directory containing the script.
-                    paths_to_use.add(
-                        os.path.normcase(os.path.dirname(self.script))
-                    )
-                    # Dropping a mu.pth file containing the paths_to_use
-                    # into USER_SITE will add such paths to sys.path in the
-                    # child process.
-                    with open(path_file, "w") as mu_pth:
-                        for p in paths_to_use:
-                            mu_pth.write(p + "\n")
-                else:
-                    logger.info(
-                        "Unable to set Python paths."
-                        " Python's USER_SITE not enabled."
-                        " Check configuration with administrator."
-                    )
-            except Exception as ex:
-                # Log all possible errors and allow Mu to continue. This is a
-                # "best effort" attempt to add the correct paths to the child
-                # process, but sometimes configuration by sys-admins may cause
-                # this to fail.
-                logger.error("Could not set Python paths with mu.pth file.")
-                logger.error(ex)
-        if "PYTHONPATH" not in envars:
-            envars.append(("PYTHONPATH", os.pathsep.join(sys.path)))
-        if envars:
-            logger.info(
-                "Running with environment variables: " "{}".format(envars)
-            )
-            for name, value in envars:
-                env.insert(name, value)
-        logger.info("Working directory: {}".format(working_directory))
-        self.process.setWorkingDirectory(working_directory)
-        self.process.setProcessEnvironment(env)
-        self.process.readyRead.connect(self.try_read_from_stdout)
-        self.process.finished.connect(self.finished)
-        logger.info("Python path: {}".format(sys.path))
-        if debugger:
-            # Start the mu-debug runner for the script.
-            parent_dir = os.path.join(os.path.dirname(__file__), "..")
-            mu_dir = os.path.abspath(parent_dir)
-            runner = os.path.join(mu_dir, "mu-debug.py")
-            python_exec = sys.executable
-            args = [runner, self.script] + command_args
-            self.process.start(python_exec, args)
-        else:
-            if runner:
-                # Use the passed in Python "runner" to run the script.
-                python_exec = runner
-            else:
-                # Use the current system Python to run the script.
-                python_exec = sys.executable
-            args = []
-            if self.script:
-                if interactive:
-                    # Start the script in interactive Python mode.
-                    args = ["-i", self.script] + command_args
-                else:
-                    # Just run the command with no additional flags.
-                    args = [self.script] + command_args
-            if python_args:
-                args = python_args + args
-            logger.info("Runner: {}".format(python_exec))
-            logger.info("Args: {}".format(args))
-            self.process.start(python_exec, args)
-            self.running = True
-
-    def finished(self, code, status):
-        """
-        Handle when the child process finishes.
-        """
-        self.running = False
-        cursor = self.textCursor()
-        cursor.movePosition(cursor.End)
-        cursor.insertText("\n\n---------- FINISHED ----------\n")
-        msg = "exit code: {} status: {}".format(code, status)
-        cursor.insertText(msg)
-        cursor.movePosition(QTextCursor.End)
-        self.setTextCursor(cursor)
-        self.setReadOnly(True)
-
-    def context_menu(self):
-        """
-        Creates custom context menu with just copy and paste.
-        """
-        menu = QMenu(self)
-        if platform.system() == "Darwin":
-            copy_keys = QKeySequence(Qt.CTRL + Qt.Key_C)
-            paste_keys = QKeySequence(Qt.CTRL + Qt.Key_V)
-        else:
-            copy_keys = QKeySequence(Qt.CTRL + Qt.SHIFT + Qt.Key_C)
-            paste_keys = QKeySequence(Qt.CTRL + Qt.SHIFT + Qt.Key_V)
-        menu.addAction("Copy", self.copy, copy_keys)
-        menu.addAction("Paste", self.paste, paste_keys)
-        menu.exec_(QCursor.pos())
-
-    def paste(self):
-        """
-        Grabs clipboard contents then writes to the REPL.
-        """
-        clipboard = QApplication.clipboard()
-        if clipboard and clipboard.text():
-            # normalize for Windows line-ends.
-            text = "\n".join(clipboard.text().splitlines())
-            if text:
-                self.parse_paste(text)
-
-    def parse_paste(self, text):
-        """
-        Recursively takes characters from text to be parsed as input. We do
-        this so the event loop has time to respond to output from the process
-        to which the characters are sent (for example, when a newline is sent).
-
-        Yes, this is a quick and dirty hack, but ensures the pasted input is
-        also evaluated in an interactive manner rather than as a single-shot
-        splurge of data. Essentially, it's simulating someone typing in the
-        characters of the pasted text *really fast* but in such a way that the
-        event loop cycles.
-        """
-        character = text[0]  # the current character to process.
-        remainder = text[1:]  # remaining characters to process in the future.
-        if character.isprintable() or character in string.printable:
-            if character == "\n" or character == "\r":
-                self.parse_input(Qt.Key_Enter, character, None)
-            else:
-                self.parse_input(None, character, None)
-        if remainder:
-            # Schedule a recursive call of parse_paste with the remaining text
-            # to process. This allows the event loop to cycle and handle any
-            # output from the child process as a result of the text pasted so
-            # far (especially useful for handling responses from newlines).
-            QTimer.singleShot(2, lambda text=remainder: self.parse_paste(text))
-
-    def keyPressEvent(self, data):
-        """
-        Called when the user types something in the REPL.
-        """
-        key = data.key()
-        text = data.text()
-        modifiers = data.modifiers()
-        self.parse_input(key, text, modifiers)
-
-    def on_process_halt(self):
-        """
-        Called when the the user has manually halted a running process. Ensures
-        that the remaining data from the halted process's stdout is handled
-        properly.
-
-        When the process is halted the user is dropped into the Python prompt
-        and this method ensures the UI is updated in a clean, non-blocking
-        way.
-        """
-        data = self.process.readAll().data()
-        if data:
-            while True:
-                try:
-                    self.append(data)
-                    self.on_append_text.emit(data)
-                    self.set_start_of_current_line()
-                    break
-                except UnicodeDecodeError:
-                    # Discard problematic start byte and try again.
-                    # (This may be caused by a split in multi-byte characters).
-                    data = data[1:]
-
-    def parse_input(self, key, text, modifiers):
-        """
-        Correctly encodes user input and sends it to the connected process.
-
-        The key is a Qt.Key_Something value, text is the textual representation
-        of the input, and modifiers are the control keys (shift, CTRL, META,
-        etc) also used.
-        """
-        msg = b""  # Eventually to be inserted into the pane at the cursor.
-        if key == Qt.Key_Enter or key == Qt.Key_Return:
-            msg = b"\n"
-        elif (
-            platform.system() == "Darwin" and modifiers == Qt.MetaModifier
-        ) or (
-            platform.system() != "Darwin" and modifiers == Qt.ControlModifier
-        ):
-            # Handle CTRL-C and CTRL-D
-            if self.process and self.running:
-                pid = self.process.processId()
-                # NOTE: Windows related constraints don't allow us to send a
-                # CTRL-C, rather, the process will just terminate.
-                halt_flag = False
-                if key == Qt.Key_C:
-                    halt_flag = True
-                    os.kill(pid, signal.SIGINT)
-                if key == Qt.Key_D:
-                    halt_flag = True
-                    self.process.kill()
-                if halt_flag:
-                    # Clean up from kill signal.
-                    self.process.readAll()  # Discard queued output.
-                    self.stdout_buffer = b""
-                    # Schedule update of the UI after the process halts (in
-                    # next iteration of the event loop).
-                    QTimer.singleShot(1, self.on_process_halt)
-                    return
-        elif key == Qt.Key_Up:
-            self.history_back()
-        elif key == Qt.Key_Down:
-            self.history_forward()
-        elif key == Qt.Key_Right:
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.Right)
-            self.setTextCursor(cursor)
-        elif key == Qt.Key_Left:
-            cursor = self.textCursor()
-            if cursor.position() > self.start_of_current_line:
-                cursor.movePosition(QTextCursor.Left)
-                self.setTextCursor(cursor)
-        elif key == Qt.Key_Home:
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.End)
-            buffer_len = len(self.toPlainText()) - self.start_of_current_line
-            for i in range(buffer_len):
-                cursor.movePosition(QTextCursor.Left)
-            self.setTextCursor(cursor)
-        elif key == Qt.Key_End:
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.End)
-            self.setTextCursor(cursor)
-        elif (modifiers == Qt.ControlModifier | Qt.ShiftModifier) or (
-            platform.system() == "Darwin" and modifiers == Qt.ControlModifier
-        ):
-            # Command-key on Mac, Ctrl-Shift on Win/Lin
-            if key == Qt.Key_C:
-                self.copy()
-            elif key == Qt.Key_V:
-                self.paste()
-        elif text.isprintable():
-            # If the key is for a printable character then add it to the
-            # active buffer and display it.
-            msg = bytes(text, "utf8")
-        if key == Qt.Key_Backspace:
-            self.backspace()
-        if key == Qt.Key_Delete:
-            self.delete()
-        if key == Qt.Key_Enter or key == Qt.Key_Return:
-            # First move cursor to the end of the line and insert newline in
-            # case return/enter is pressed while the cursor is in the
-            # middle of the line
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.End)
-            self.setTextCursor(cursor)
-            self.insert(msg)
-            # Then write line to std_in and add to history
-            content = self.toPlainText()
-            line = content[self.start_of_current_line :].encode("utf-8")
-            self.write_to_stdin(line)
-            if line.strip():
-                self.input_history.append(line.replace(b"\n", b""))
-            self.history_position = 0
-            self.set_start_of_current_line()
-        elif not self.isReadOnly() and msg:
-            self.insert(msg)
-
-    def set_start_of_current_line(self):
-        """
-        Set the flag to indicate the start of the current line (used before
-        waiting for input).
-
-        This flag is used to discard the preceeding text in the text entry
-        field when Mu parses new input from the user (i.e. any text beyond the
-        self.start_of_current_line).
-        """
-        self.start_of_current_line = len(self.toPlainText())
-
-    def history_back(self):
-        """
-        Replace the current input line with the next item BACK from the
-        current history position.
-        """
-        if self.input_history:
-            self.history_position -= 1
-            history_pos = len(self.input_history) + self.history_position
-            if history_pos < 0:
-                self.history_position += 1
-                history_pos = 0
-            history_item = self.input_history[history_pos]
-            self.replace_input_line(history_item)
-
-    def history_forward(self):
-        """
-        Replace the current input line with the next item FORWARD from the
-        current history position.
-        """
-        if self.input_history:
-            self.history_position += 1
-            history_pos = len(self.input_history) + self.history_position
-            if history_pos >= len(self.input_history):
-                # At the most recent command.
-                self.history_position = 0
-                self.clear_input_line()
-                return
-            history_item = self.input_history[history_pos]
-            self.replace_input_line(history_item)
-
-    def try_read_from_stdout(self):
-        """
-        Ensure reading from stdout only happens if there is NOT already current
-        attempts to read from stdout.
-        """
-        if not self.reading_stdout:
-            self.reading_stdout = True
-            self.read_from_stdout()
-
-    def read_from_stdout(self):
-        """
-        Process incoming data from the process's stdout.
-        """
-        data = self.process.read(256)
-        if data:
-            data = self.stdout_buffer + data
-            try:
-                self.append(data)
-                self.on_append_text.emit(data)
-                self.set_start_of_current_line()
-                self.stdout_buffer = b""
-            except UnicodeDecodeError:
-                self.stdout_buffer = data
-            QTimer.singleShot(2, self.read_from_stdout)
-        else:
-            self.reading_stdout = False
-
-    def write_to_stdin(self, data):
-        """
-        Writes data from the Qt application to the child process's stdin.
-        """
-        if self.process:
-            self.process.write(data)
-
-    def append(self, msg):
-        """
-        Append text to the text area.
-        """
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        cursor.insertText(msg.decode("utf-8"))
-        cursor.movePosition(QTextCursor.End)
-        self.setTextCursor(cursor)
-
-    def insert(self, msg):
-        """
-        Insert text to the text area at the current cursor position.
-        """
-        cursor = self.textCursor()
-        if cursor.position() < self.start_of_current_line:
-            cursor.movePosition(QTextCursor.End)
-        cursor.insertText(msg.decode("utf-8"))
-        self.setTextCursor(cursor)
-
-    def backspace(self):
-        """
-        Removes a character from the current buffer -- to the left of cursor.
-        """
-        cursor = self.textCursor()
-        if cursor.position() > self.start_of_current_line:
-            cursor = self.textCursor()
-            cursor.deletePreviousChar()
-            self.setTextCursor(cursor)
-
-    def delete(self):
-        """
-        Removes a character from the current buffer -- to the right of cursor.
-        """
-        cursor = self.textCursor()
-        if cursor.position() >= self.start_of_current_line:
-            cursor.deleteChar()
-            self.setTextCursor(cursor)
-
-    def clear_input_line(self):
-        """
-        Remove all the characters currently in the input buffer line.
-        """
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        buffer_len = len(self.toPlainText()) - self.start_of_current_line
-        for i in range(buffer_len):
-            cursor.deletePreviousChar()
-        self.setTextCursor(cursor)
-
-    def replace_input_line(self, text):
-        """
-        Replace the current input line with the passed in text.
-        """
-        self.clear_input_line()
-        self.append(text)
-
-    def set_font_size(self, new_size=DEFAULT_FONT_SIZE):
-        """
-        Sets the font size for all the textual elements in this pane.
-        """
-        f = self.font()
-        f.setPointSize(new_size)
-        self.setFont(f)
-
-    def set_zoom(self, size):
-        """
-        Set the current zoom level given the "t-shirt" size.
-        """
-        self.set_font_size(PANE_ZOOM_SIZES[size])
-
-    def set_theme(self, theme):
-        pass
+# class MuFileList(QListWidget):
+#     """
+#     Contains shared methods for the two types of file listing used in Mu.
+#     """
+
+#     disable = pyqtSignal()
+#     list_files = pyqtSignal()
+#     set_message = pyqtSignal(str)
+
+#     def show_confirm_overwrite_dialog(self):
+#         """
+#         Display a dialog to check if an existing file should be overwritten.
+
+#         Returns a boolean indication of the user's decision.
+#         """
+#         msg = QMessageBox(self)
+#         msg.setIcon(QMessageBox.Information)
+#         msg.setText(_("File already exists; overwrite it?"))
+#         msg.setWindowTitle(_("File already exists"))
+#         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+#         return msg.exec_() == QMessageBox.Ok
+
+
+# class MicroPythonDeviceFileList(MuFileList):
+#     """
+#     Represents a list of files on a MicroPython device.
+#     """
+
+#     put = pyqtSignal(str)
+#     delete = pyqtSignal(str)
+
+#     def __init__(self, home):
+#         super().__init__()
+#         self.home = home
+#         self.setDragDropMode(QListWidget.DragDrop)
+
+#     def dropEvent(self, event):
+#         source = event.source()
+#         if isinstance(source, LocalFileList):
+#             file_exists = self.findItems(
+#                 source.currentItem().text(), Qt.MatchExactly
+#             )
+#             if (
+#                 not file_exists
+#                 or file_exists
+#                 and self.show_confirm_overwrite_dialog()
+#             ):
+#                 self.disable.emit()
+#                 local_filename = os.path.join(
+#                     self.home, source.currentItem().text()
+#                 )
+#                 msg = _("Copying '{}' to micro:bit.").format(local_filename)
+#                 logger.info(msg)
+#                 self.set_message.emit(msg)
+#                 self.put.emit(local_filename)
+
+#     def on_put(self, microbit_file):
+#         """
+#         Fired when the put event is completed for the given filename.
+#         """
+#         msg = _("'{}' successfully copied to micro:bit.").format(microbit_file)
+#         self.set_message.emit(msg)
+#         self.list_files.emit()
+
+#     def contextMenuEvent(self, event):
+#         menu = QMenu(self)
+#         delete_action = menu.addAction(_("Delete (cannot be undone)"))
+#         action = menu.exec_(self.mapToGlobal(event.pos()))
+#         if action == delete_action:
+#             self.disable.emit()
+#             microbit_filename = self.currentItem().text()
+#             logger.info("Deleting {}".format(microbit_filename))
+#             msg = _("Deleting '{}' from micro:bit.").format(microbit_filename)
+#             logger.info(msg)
+#             self.set_message.emit(msg)
+#             self.delete.emit(microbit_filename)
+
+#     def on_delete(self, microbit_file):
+#         """
+#         Fired when the delete event is completed for the given filename.
+#         """
+#         msg = _("'{}' successfully deleted from micro:bit.").format(
+#             microbit_file
+#         )
+#         self.set_message.emit(msg)
+#         self.list_files.emit()
+
+
+# class LocalFileList(MuFileList):
+#     """
+#     Represents a list of files in the Mu directory on the local machine.
+#     """
+
+#     get = pyqtSignal(str, str)
+#     put = pyqtSignal(str, str)
+#     open_file = pyqtSignal(str)
+
+#     def __init__(self, home):
+#         super().__init__()
+#         self.home = home
+#         self.setDragDropMode(QListWidget.DragDrop)
+
+#     def dropEvent(self, event):
+#         source = event.source()
+#         if isinstance(source, MicroPythonDeviceFileList):
+#             file_exists = self.findItems(
+#                 source.currentItem().text(), Qt.MatchExactly
+#             )
+#             if (
+#                 not file_exists
+#                 or file_exists
+#                 and self.show_confirm_overwrite_dialog()
+#             ):
+#                 self.disable.emit()
+#                 microbit_filename = source.currentItem().text()
+#                 local_filename = os.path.join(self.home, microbit_filename)
+#                 msg = _(
+#                     "Getting '{}' from micro:bit. " "Copying to '{}'."
+#                 ).format(microbit_filename, local_filename)
+#                 logger.info(msg)
+#                 self.set_message.emit(msg)
+#                 self.get.emit(microbit_filename, local_filename)
+
+#     def on_get(self, microbit_file):
+#         """
+#         Fired when the get event is completed for the given filename.
+#         """
+#         msg = _(
+#             "Successfully copied '{}' " "from the micro:bit to your computer."
+#         ).format(microbit_file)
+#         self.set_message.emit(msg)
+#         self.list_files.emit()
+
+#     def contextMenuEvent(self, event):
+#         menu = QMenu(self)
+#         local_filename = self.currentItem().text()
+#         # Get the file extension
+#         ext = os.path.splitext(local_filename)[1].lower()
+#         open_internal_action = None
+#         # Mu micro:bit mode only handles .py & .hex
+#         if ext == ".py" or ext == ".hex":
+#             open_internal_action = menu.addAction(_("Open in Mu"))
+#         if ext == ".py":
+#             write_to_main_action = menu.addAction(
+#                 _("Write to main.py on device")
+#             )
+#         # Open outside Mu (things get meta if Mu is the default application)
+#         open_action = menu.addAction(_("Open"))
+#         action = menu.exec_(self.mapToGlobal(event.pos()))
+#         if action == open_action:
+#             # Get the file's path
+#             path = os.path.join(self.home, local_filename)
+#             logger.info("Opening {}".format(path))
+#             msg = _("Opening '{}'").format(local_filename)
+#             logger.info(msg)
+#             self.set_message.emit(msg)
+#             # Let Qt work out how to open it
+#             QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+#         elif action == open_internal_action:
+#             logger.info("Open {} internally".format(local_filename))
+#             # Get the file's path
+#             path = os.path.join(self.home, local_filename)
+#             # Send the signal bubbling up the tree
+#             self.open_file.emit(path)
+#         elif action == write_to_main_action:
+#             path = os.path.join(self.home, local_filename)
+#             self.put.emit(path, "main.py")
+
+
+# class FileSystemPane(QFrame):
+#     """
+#     Contains two QListWidgets representing the micro:bit and the user's code
+#     directory. Users transfer files by dragging and dropping. Highlighted files
+#     can be selected for deletion.
+#     """
+
+#     set_message = pyqtSignal(str)
+#     set_warning = pyqtSignal(str)
+#     list_files = pyqtSignal()
+#     open_file = pyqtSignal(str)
+
+#     def __init__(self, home):
+#         super().__init__()
+#         self.home = home
+#         self.font = Font().load()
+#         microbit_fs = MicroPythonDeviceFileList(home)
+#         local_fs = LocalFileList(home)
+
+#         @local_fs.open_file.connect
+#         def on_open_file(file):
+#             # Bubble the signal up
+#             self.open_file.emit(file)
+
+#         layout = QGridLayout()
+#         self.setLayout(layout)
+#         microbit_label = QLabel()
+#         microbit_label.setText(_("Files on your device:"))
+#         local_label = QLabel()
+#         local_label.setText(_("Files on your computer:"))
+#         self.microbit_label = microbit_label
+#         self.local_label = local_label
+#         self.microbit_fs = microbit_fs
+#         self.local_fs = local_fs
+#         self.set_font_size()
+#         layout.addWidget(microbit_label, 0, 0)
+#         layout.addWidget(local_label, 0, 1)
+#         layout.addWidget(microbit_fs, 1, 0)
+#         layout.addWidget(local_fs, 1, 1)
+#         self.microbit_fs.disable.connect(self.disable)
+#         self.microbit_fs.set_message.connect(self.show_message)
+#         self.local_fs.disable.connect(self.disable)
+#         self.local_fs.set_message.connect(self.show_message)
+
+#     def disable(self):
+#         """
+#         Stops interaction with the list widgets.
+#         """
+#         self.microbit_fs.setDisabled(True)
+#         self.local_fs.setDisabled(True)
+#         self.microbit_fs.setAcceptDrops(False)
+#         self.local_fs.setAcceptDrops(False)
+
+#     def enable(self):
+#         """
+#         Allows interaction with the list widgets.
+#         """
+#         self.microbit_fs.setDisabled(False)
+#         self.local_fs.setDisabled(False)
+#         self.microbit_fs.setAcceptDrops(True)
+#         self.local_fs.setAcceptDrops(True)
+
+#     def show_message(self, message):
+#         """
+#         Emits the set_message signal.
+#         """
+#         self.set_message.emit(message)
+
+#     def show_warning(self, message):
+#         """
+#         Emits the set_warning signal.
+#         """
+#         self.set_warning.emit(message)
+
+#     def on_ls(self, microbit_files):
+#         """
+#         Displays a list of the files on the micro:bit.
+
+#         Since listing files is always the final event in any interaction
+#         between Mu and the micro:bit, this enables the controls again for
+#         further interactions to take place.
+#         """
+#         self.microbit_fs.clear()
+#         self.local_fs.clear()
+#         for f in microbit_files:
+#             self.microbit_fs.addItem(f)
+#         local_files = [
+#             f
+#             for f in os.listdir(self.home)
+#             if os.path.isfile(os.path.join(self.home, f))
+#         ]
+#         local_files.sort()
+#         for f in local_files:
+#             self.local_fs.addItem(f)
+#         self.enable()
+
+#     def on_ls_fail(self):
+#         """
+#         Fired when listing files fails.
+#         """
+#         self.show_warning(
+#             _(
+#                 "There was a problem getting the list of files on "
+#                 "the device. Please check Mu's logs for "
+#                 "technical information. Alternatively, try "
+#                 "unplugging/plugging-in your device and/or "
+#                 "restarting Mu."
+#             )
+#         )
+#         self.disable()
+
+#     def on_put_fail(self, filename):
+#         """
+#         Fired when the referenced file cannot be copied onto the device.
+#         """
+#         self.show_warning(
+#             _(
+#                 "There was a problem copying the file '{}' onto "
+#                 "the device. Please check Mu's logs for "
+#                 "more information."
+#             ).format(filename)
+#         )
+
+#     def on_delete_fail(self, filename):
+#         """
+#         Fired when a deletion on the device for the given file failed.
+#         """
+#         self.show_warning(
+#             _(
+#                 "There was a problem deleting '{}' from the "
+#                 "device. Please check Mu's logs for "
+#                 "more information."
+#             ).format(filename)
+#         )
+
+#     def on_get_fail(self, filename):
+#         """
+#         Fired when getting the referenced file on the device failed.
+#         """
+#         self.show_warning(
+#             _(
+#                 "There was a problem getting '{}' from the "
+#                 "device. Please check Mu's logs for "
+#                 "more information."
+#             ).format(filename)
+#         )
+
+#     def set_theme(self, theme):
+#         pass
+
+#     def set_font_size(self, new_size=DEFAULT_FONT_SIZE):
+#         """
+#         Sets the font size for all the textual elements in this pane.
+#         """
+#         self.font.setPointSize(new_size)
+#         self.microbit_label.setFont(self.font)
+#         self.local_label.setFont(self.font)
+#         self.microbit_fs.setFont(self.font)
+#         self.local_fs.setFont(self.font)
+
+#     def set_zoom(self, size):
+#         """
+#         Set the current zoom level given the "t-shirt" size.
+#         """
+#         self.set_font_size(PANE_ZOOM_SIZES[size])
+
+
+# class PythonProcessPane(QTextEdit):
+#     """
+#     Handles / displays a Python process's stdin/out with working command
+#     history and simple buffer editing.
+#     """
+
+#     on_append_text = pyqtSignal(bytes)
+
+#     def __init__(self, parent=None):
+#         super().__init__(parent)
+#         self.setFont(Font().load())
+#         self.setAcceptRichText(False)
+#         self.setReadOnly(False)
+#         self.setUndoRedoEnabled(False)
+#         self.setContextMenuPolicy(Qt.CustomContextMenu)
+#         self.customContextMenuRequested.connect(self.context_menu)
+#         self.running = False  # Flag to show the child process is running.
+#         self.setObjectName("PythonRunner")
+#         self.process = None  # Will eventually reference the running process.
+#         self.input_history = []  # history of inputs entered in this session.
+#         self.start_of_current_line = 0  # start position of the input line.
+#         self.history_position = 0  # current position when navigation history.
+#         self.stdout_buffer = b""  # contains non-decoded bytes from stdout.
+#         self.reading_stdout = False  # flag showing if already reading stdout.
+
+#     def start_process(
+#         self,
+#         script_name,
+#         working_directory,
+#         interactive=True,
+#         debugger=False,
+#         command_args=None,
+#         envars=None,
+#         runner=None,
+#         python_args=None,
+#     ):
+#         """
+#         Start the child Python process.
+
+#         Will run the referenced Python script_name within the context of the
+#         working directory.
+
+#         If interactive is True (the default) the Python process will run in
+#         interactive mode (dropping the user into the REPL when the script
+#         completes).
+
+#         If debugger is True (the default is False) then the script will run
+#         within a debug runner session.
+
+#         If there is a list of command_args (the default is None), then these
+#         will be passed as further arguments into the script to be run.
+
+#         If there is a list of environment variables, these will be part of the
+#         context of the new child process.
+
+#         If runner is given, this is used as the command to start the Python
+#         process.
+
+#         If python_args is given, these are passed as arguments to the Python
+#         runtime used to launch the child process.
+#         """
+#         if not envars:  # Envars must be a list if not passed a value.
+#             envars = []
+#         self.script = ""
+#         if script_name:
+#             self.script = os.path.abspath(os.path.normcase(script_name))
+#         logger.info("Running script: {}".format(self.script))
+#         if interactive:
+#             logger.info("Running with interactive mode.")
+#         if command_args is None:
+#             command_args = []
+#         logger.info("Command args: {}".format(command_args))
+#         self.process = QProcess(self)
+#         self.process.setProcessChannelMode(QProcess.MergedChannels)
+#         # Force buffers to flush immediately.
+#         env = QProcessEnvironment.systemEnvironment()
+#         env.insert("PYTHONUNBUFFERED", "1")
+#         env.insert("PYTHONIOENCODING", "utf-8")
+#         if sys.platform == "darwin":
+#             # Ensure the correct encoding is set for the environment. If the
+#             # following two lines are not set, then Flask will complain about
+#             # Python 3 being misconfigured to use ASCII encoding.
+#             # See: https://click.palletsprojects.com/en/7.x/python3/
+#             encoding = "{}.utf-8".format(language_code)
+#             env.insert("LC_ALL", encoding)
+#             env.insert("LANG", encoding)
+#         if sys.platform == "win32" and "pythonw.exe" in sys.executable:
+#             # On Windows, if installed via NSIS then Python is always run in
+#             # isolated mode via pythonw.exe so none of the expected directories
+#             # are on sys.path. To mitigate, Mu attempts to drop a mu.pth file
+#             # in a location taken from Windows based settings. This file will
+#             # contain the "other" directories to include on the Python path,
+#             # such as the working_directory and, if different from the
+#             # working_directory, the directory containing the script to run.
+#             try:
+#                 if site.ENABLE_USER_SITE:
+#                     # Ensure the USER_SITE directory exists.
+#                     os.makedirs(site.getusersitepackages(), exist_ok=True)
+#                     site_path = site.USER_SITE
+#                     path_file = os.path.join(site_path, "mu.pth")
+#                     logger.info("Python paths set via {}".format(path_file))
+#                     # Copy current Python paths. Use a set to avoid
+#                     # duplications.
+#                     paths_to_use = set([os.path.normcase(p) for p in sys.path])
+#                     # Add Mu's working directory.
+#                     paths_to_use.add(os.path.normcase(working_directory))
+#                     # Add the directory containing the script.
+#                     paths_to_use.add(
+#                         os.path.normcase(os.path.dirname(self.script))
+#                     )
+#                     # Dropping a mu.pth file containing the paths_to_use
+#                     # into USER_SITE will add such paths to sys.path in the
+#                     # child process.
+#                     with open(path_file, "w") as mu_pth:
+#                         for p in paths_to_use:
+#                             mu_pth.write(p + "\n")
+#                 else:
+#                     logger.info(
+#                         "Unable to set Python paths."
+#                         " Python's USER_SITE not enabled."
+#                         " Check configuration with administrator."
+#                     )
+#             except Exception as ex:
+#                 # Log all possible errors and allow Mu to continue. This is a
+#                 # "best effort" attempt to add the correct paths to the child
+#                 # process, but sometimes configuration by sys-admins may cause
+#                 # this to fail.
+#                 logger.error("Could not set Python paths with mu.pth file.")
+#                 logger.error(ex)
+#         if "PYTHONPATH" not in envars:
+#             envars.append(("PYTHONPATH", os.pathsep.join(sys.path)))
+#         if envars:
+#             logger.info(
+#                 "Running with environment variables: " "{}".format(envars)
+#             )
+#             for name, value in envars:
+#                 env.insert(name, value)
+#         logger.info("Working directory: {}".format(working_directory))
+#         self.process.setWorkingDirectory(working_directory)
+#         self.process.setProcessEnvironment(env)
+#         self.process.readyRead.connect(self.try_read_from_stdout)
+#         self.process.finished.connect(self.finished)
+#         logger.info("Python path: {}".format(sys.path))
+#         if debugger:
+#             # Start the mu-debug runner for the script.
+#             parent_dir = os.path.join(os.path.dirname(__file__), "..")
+#             mu_dir = os.path.abspath(parent_dir)
+#             runner = os.path.join(mu_dir, "mu-debug.py")
+#             python_exec = sys.executable
+#             args = [runner, self.script] + command_args
+#             self.process.start(python_exec, args)
+#         else:
+#             if runner:
+#                 # Use the passed in Python "runner" to run the script.
+#                 python_exec = runner
+#             else:
+#                 # Use the current system Python to run the script.
+#                 python_exec = sys.executable
+#             args = []
+#             if self.script:
+#                 if interactive:
+#                     # Start the script in interactive Python mode.
+#                     args = ["-i", self.script] + command_args
+#                 else:
+#                     # Just run the command with no additional flags.
+#                     args = [self.script] + command_args
+#             if python_args:
+#                 args = python_args + args
+#             logger.info("Runner: {}".format(python_exec))
+#             logger.info("Args: {}".format(args))
+#             self.process.start(python_exec, args)
+#             self.running = True
+
+#     def finished(self, code, status):
+#         """
+#         Handle when the child process finishes.
+#         """
+#         self.running = False
+#         cursor = self.textCursor()
+#         cursor.movePosition(cursor.End)
+#         cursor.insertText("\n\n---------- FINISHED ----------\n")
+#         msg = "exit code: {} status: {}".format(code, status)
+#         cursor.insertText(msg)
+#         cursor.movePosition(QTextCursor.End)
+#         self.setTextCursor(cursor)
+#         self.setReadOnly(True)
+
+#     def context_menu(self):
+#         """
+#         Creates custom context menu with just copy and paste.
+#         """
+#         menu = QMenu(self)
+#         if platform.system() == "Darwin":
+#             copy_keys = QKeySequence(Qt.CTRL + Qt.Key_C)
+#             paste_keys = QKeySequence(Qt.CTRL + Qt.Key_V)
+#         else:
+#             copy_keys = QKeySequence(Qt.CTRL + Qt.SHIFT + Qt.Key_C)
+#             paste_keys = QKeySequence(Qt.CTRL + Qt.SHIFT + Qt.Key_V)
+#         menu.addAction("Copy", self.copy, copy_keys)
+#         menu.addAction("Paste", self.paste, paste_keys)
+#         menu.exec_(QCursor.pos())
+
+#     def paste(self):
+#         """
+#         Grabs clipboard contents then writes to the REPL.
+#         """
+#         clipboard = QApplication.clipboard()
+#         if clipboard and clipboard.text():
+#             # normalize for Windows line-ends.
+#             text = "\n".join(clipboard.text().splitlines())
+#             if text:
+#                 self.parse_paste(text)
+
+#     def parse_paste(self, text):
+#         """
+#         Recursively takes characters from text to be parsed as input. We do
+#         this so the event loop has time to respond to output from the process
+#         to which the characters are sent (for example, when a newline is sent).
+
+#         Yes, this is a quick and dirty hack, but ensures the pasted input is
+#         also evaluated in an interactive manner rather than as a single-shot
+#         splurge of data. Essentially, it's simulating someone typing in the
+#         characters of the pasted text *really fast* but in such a way that the
+#         event loop cycles.
+#         """
+#         character = text[0]  # the current character to process.
+#         remainder = text[1:]  # remaining characters to process in the future.
+#         if character.isprintable() or character in string.printable:
+#             if character == "\n" or character == "\r":
+#                 self.parse_input(Qt.Key_Enter, character, None)
+#             else:
+#                 self.parse_input(None, character, None)
+#         if remainder:
+#             # Schedule a recursive call of parse_paste with the remaining text
+#             # to process. This allows the event loop to cycle and handle any
+#             # output from the child process as a result of the text pasted so
+#             # far (especially useful for handling responses from newlines).
+#             QTimer.singleShot(2, lambda text=remainder: self.parse_paste(text))
+
+#     def keyPressEvent(self, data):
+#         """
+#         Called when the user types something in the REPL.
+#         """
+#         key = data.key()
+#         text = data.text()
+#         modifiers = data.modifiers()
+#         self.parse_input(key, text, modifiers)
+
+#     def on_process_halt(self):
+#         """
+#         Called when the the user has manually halted a running process. Ensures
+#         that the remaining data from the halted process's stdout is handled
+#         properly.
+
+#         When the process is halted the user is dropped into the Python prompt
+#         and this method ensures the UI is updated in a clean, non-blocking
+#         way.
+#         """
+#         data = self.process.readAll().data()
+#         if data:
+#             while True:
+#                 try:
+#                     self.append(data)
+#                     self.on_append_text.emit(data)
+#                     self.set_start_of_current_line()
+#                     break
+#                 except UnicodeDecodeError:
+#                     # Discard problematic start byte and try again.
+#                     # (This may be caused by a split in multi-byte characters).
+#                     data = data[1:]
+
+#     def parse_input(self, key, text, modifiers):
+#         """
+#         Correctly encodes user input and sends it to the connected process.
+
+#         The key is a Qt.Key_Something value, text is the textual representation
+#         of the input, and modifiers are the control keys (shift, CTRL, META,
+#         etc) also used.
+#         """
+#         msg = b""  # Eventually to be inserted into the pane at the cursor.
+#         if key == Qt.Key_Enter or key == Qt.Key_Return:
+#             msg = b"\n"
+#         elif (
+#             platform.system() == "Darwin" and modifiers == Qt.MetaModifier
+#         ) or (
+#             platform.system() != "Darwin" and modifiers == Qt.ControlModifier
+#         ):
+#             # Handle CTRL-C and CTRL-D
+#             if self.process and self.running:
+#                 pid = self.process.processId()
+#                 # NOTE: Windows related constraints don't allow us to send a
+#                 # CTRL-C, rather, the process will just terminate.
+#                 halt_flag = False
+#                 if key == Qt.Key_C:
+#                     halt_flag = True
+#                     os.kill(pid, signal.SIGINT)
+#                 if key == Qt.Key_D:
+#                     halt_flag = True
+#                     self.process.kill()
+#                 if halt_flag:
+#                     # Clean up from kill signal.
+#                     self.process.readAll()  # Discard queued output.
+#                     self.stdout_buffer = b""
+#                     # Schedule update of the UI after the process halts (in
+#                     # next iteration of the event loop).
+#                     QTimer.singleShot(1, self.on_process_halt)
+#                     return
+#         elif key == Qt.Key_Up:
+#             self.history_back()
+#         elif key == Qt.Key_Down:
+#             self.history_forward()
+#         elif key == Qt.Key_Right:
+#             cursor = self.textCursor()
+#             cursor.movePosition(QTextCursor.Right)
+#             self.setTextCursor(cursor)
+#         elif key == Qt.Key_Left:
+#             cursor = self.textCursor()
+#             if cursor.position() > self.start_of_current_line:
+#                 cursor.movePosition(QTextCursor.Left)
+#                 self.setTextCursor(cursor)
+#         elif key == Qt.Key_Home:
+#             cursor = self.textCursor()
+#             cursor.movePosition(QTextCursor.End)
+#             buffer_len = len(self.toPlainText()) - self.start_of_current_line
+#             for i in range(buffer_len):
+#                 cursor.movePosition(QTextCursor.Left)
+#             self.setTextCursor(cursor)
+#         elif key == Qt.Key_End:
+#             cursor = self.textCursor()
+#             cursor.movePosition(QTextCursor.End)
+#             self.setTextCursor(cursor)
+#         elif (modifiers == Qt.ControlModifier | Qt.ShiftModifier) or (
+#             platform.system() == "Darwin" and modifiers == Qt.ControlModifier
+#         ):
+#             # Command-key on Mac, Ctrl-Shift on Win/Lin
+#             if key == Qt.Key_C:
+#                 self.copy()
+#             elif key == Qt.Key_V:
+#                 self.paste()
+#         elif text.isprintable():
+#             # If the key is for a printable character then add it to the
+#             # active buffer and display it.
+#             msg = bytes(text, "utf8")
+#         if key == Qt.Key_Backspace:
+#             self.backspace()
+#         if key == Qt.Key_Delete:
+#             self.delete()
+#         if key == Qt.Key_Enter or key == Qt.Key_Return:
+#             # First move cursor to the end of the line and insert newline in
+#             # case return/enter is pressed while the cursor is in the
+#             # middle of the line
+#             cursor = self.textCursor()
+#             cursor.movePosition(QTextCursor.End)
+#             self.setTextCursor(cursor)
+#             self.insert(msg)
+#             # Then write line to std_in and add to history
+#             content = self.toPlainText()
+#             line = content[self.start_of_current_line :].encode("utf-8")
+#             self.write_to_stdin(line)
+#             if line.strip():
+#                 self.input_history.append(line.replace(b"\n", b""))
+#             self.history_position = 0
+#             self.set_start_of_current_line()
+#         elif not self.isReadOnly() and msg:
+#             self.insert(msg)
+
+#     def set_start_of_current_line(self):
+#         """
+#         Set the flag to indicate the start of the current line (used before
+#         waiting for input).
+
+#         This flag is used to discard the preceeding text in the text entry
+#         field when Mu parses new input from the user (i.e. any text beyond the
+#         self.start_of_current_line).
+#         """
+#         self.start_of_current_line = len(self.toPlainText())
+
+#     def history_back(self):
+#         """
+#         Replace the current input line with the next item BACK from the
+#         current history position.
+#         """
+#         if self.input_history:
+#             self.history_position -= 1
+#             history_pos = len(self.input_history) + self.history_position
+#             if history_pos < 0:
+#                 self.history_position += 1
+#                 history_pos = 0
+#             history_item = self.input_history[history_pos]
+#             self.replace_input_line(history_item)
+
+#     def history_forward(self):
+#         """
+#         Replace the current input line with the next item FORWARD from the
+#         current history position.
+#         """
+#         if self.input_history:
+#             self.history_position += 1
+#             history_pos = len(self.input_history) + self.history_position
+#             if history_pos >= len(self.input_history):
+#                 # At the most recent command.
+#                 self.history_position = 0
+#                 self.clear_input_line()
+#                 return
+#             history_item = self.input_history[history_pos]
+#             self.replace_input_line(history_item)
+
+#     def try_read_from_stdout(self):
+#         """
+#         Ensure reading from stdout only happens if there is NOT already current
+#         attempts to read from stdout.
+#         """
+#         if not self.reading_stdout:
+#             self.reading_stdout = True
+#             self.read_from_stdout()
+
+#     def read_from_stdout(self):
+#         """
+#         Process incoming data from the process's stdout.
+#         """
+#         data = self.process.read(256)
+#         if data:
+#             data = self.stdout_buffer + data
+#             try:
+#                 self.append(data)
+#                 self.on_append_text.emit(data)
+#                 self.set_start_of_current_line()
+#                 self.stdout_buffer = b""
+#             except UnicodeDecodeError:
+#                 self.stdout_buffer = data
+#             QTimer.singleShot(2, self.read_from_stdout)
+#         else:
+#             self.reading_stdout = False
+
+#     def write_to_stdin(self, data):
+#         """
+#         Writes data from the Qt application to the child process's stdin.
+#         """
+#         if self.process:
+#             self.process.write(data)
+
+#     def append(self, msg):
+#         """
+#         Append text to the text area.
+#         """
+#         cursor = self.textCursor()
+#         cursor.movePosition(QTextCursor.End)
+#         cursor.insertText(msg.decode("utf-8"))
+#         cursor.movePosition(QTextCursor.End)
+#         self.setTextCursor(cursor)
+
+#     def insert(self, msg):
+#         """
+#         Insert text to the text area at the current cursor position.
+#         """
+#         cursor = self.textCursor()
+#         if cursor.position() < self.start_of_current_line:
+#             cursor.movePosition(QTextCursor.End)
+#         cursor.insertText(msg.decode("utf-8"))
+#         self.setTextCursor(cursor)
+
+#     def backspace(self):
+#         """
+#         Removes a character from the current buffer -- to the left of cursor.
+#         """
+#         cursor = self.textCursor()
+#         if cursor.position() > self.start_of_current_line:
+#             cursor = self.textCursor()
+#             cursor.deletePreviousChar()
+#             self.setTextCursor(cursor)
+
+#     def delete(self):
+#         """
+#         Removes a character from the current buffer -- to the right of cursor.
+#         """
+#         cursor = self.textCursor()
+#         if cursor.position() >= self.start_of_current_line:
+#             cursor.deleteChar()
+#             self.setTextCursor(cursor)
+
+#     def clear_input_line(self):
+#         """
+#         Remove all the characters currently in the input buffer line.
+#         """
+#         cursor = self.textCursor()
+#         cursor.movePosition(QTextCursor.End)
+#         buffer_len = len(self.toPlainText()) - self.start_of_current_line
+#         for i in range(buffer_len):
+#             cursor.deletePreviousChar()
+#         self.setTextCursor(cursor)
+
+#     def replace_input_line(self, text):
+#         """
+#         Replace the current input line with the passed in text.
+#         """
+#         self.clear_input_line()
+#         self.append(text)
+
+#     def set_font_size(self, new_size=DEFAULT_FONT_SIZE):
+#         """
+#         Sets the font size for all the textual elements in this pane.
+#         """
+#         f = self.font()
+#         f.setPointSize(new_size)
+#         self.setFont(f)
+
+#     def set_zoom(self, size):
+#         """
+#         Set the current zoom level given the "t-shirt" size.
+#         """
+#         self.set_font_size(PANE_ZOOM_SIZES[size])
+
+#     def set_theme(self, theme):
+#         pass
 
 
 # class DebugInspectorItem(QStandardItem):

@@ -294,7 +294,7 @@ class EditorPane(QsciScintilla):
         if self.path:
             label = os.path.basename(self.path)
         else:
-            label = _("untitled")
+            label = ("untitled")
         return label
 
     @property

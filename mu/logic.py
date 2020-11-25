@@ -56,122 +56,122 @@ LOG_DIR = appdirs.user_log_dir(appname="mu", appauthor="python")
 # The path to the log file for the application.
 LOG_FILE = os.path.join(LOG_DIR, "mu.log")
 # Regex to match pycodestyle (PEP8) output.
-STYLE_REGEX = re.compile(r".*:(\d+):(\d+):\s+(.*)")
-# Regex to match flake8 output.
-FLAKE_REGEX = re.compile(r".*:(\d+):\s+(.*)")
-# Regex to match false positive flake errors if microbit.* is expanded.
-EXPAND_FALSE_POSITIVE = re.compile(r"^'microbit\.(\w+)' imported but unused$")
+# STYLE_REGEX = re.compile(r".*:(\d+):(\d+):\s+(.*)")
+# # Regex to match flake8 output.
+# FLAKE_REGEX = re.compile(r".*:(\d+):\s+(.*)")
+# # Regex to match false positive flake errors if microbit.* is expanded.
+# EXPAND_FALSE_POSITIVE = re.compile(r"^'microbit\.(\w+)' imported but unused$")
 # The text to which "from microbit import \*" should be expanded.
-EXPANDED_IMPORT = (
-    "from microbit import pin15, pin2, pin0, pin1, "
-    " pin3, pin6, pin4, i2c, pin5, pin7, pin8, Image, "
-    "pin9, pin14, pin16, reset, pin19, temperature, "
-    "sleep, pin20, button_a, button_b, running_time, "
-    "accelerometer, display, uart, spi, panic, pin13, "
-    "pin12, pin11, pin10, compass"
-)
+# EXPANDED_IMPORT = (
+#     "from microbit import pin15, pin2, pin0, pin1, "
+#     " pin3, pin6, pin4, i2c, pin5, pin7, pin8, Image, "
+#     "pin9, pin14, pin16, reset, pin19, temperature, "
+#     "sleep, pin20, button_a, button_b, running_time, "
+#     "accelerometer, display, uart, spi, panic, pin13, "
+#     "pin12, pin11, pin10, compass"
+# )
 # Port number for debugger.
-DEBUGGER_PORT = 31415
+# DEBUGGER_PORT = 31415
 # Default images to copy over for use in PyGameZero demo apps.
-DEFAULT_IMAGES = [
-    "alien.png",
-    "alien_hurt.png",
-    "cat1.png",
-    "cat2.png",
-    "cat3.png",
-    "cat4.png",
-    "splat.png",
-]
+# DEFAULT_IMAGES = [
+#     "alien.png",
+#     "alien_hurt.png",
+#     "cat1.png",
+#     "cat2.png",
+#     "cat3.png",
+#     "cat4.png",
+#     "splat.png",
+# ]
 # Default sound effects to copy over for use in PyGameZero demo apps.
-DEFAULT_SOUNDS = [
-    "eep.wav",
-    "meow1.wav",
-    "meow2.wav",
-    "meow3.wav",
-    "meow4.wav",
-    "splat.wav",
-]
+# DEFAULT_SOUNDS = [
+#     "eep.wav",
+#     "meow1.wav",
+#     "meow2.wav",
+#     "meow3.wav",
+#     "meow4.wav",
+#     "splat.wav",
+# ]
 MOTD = [  # Candidate phrases for the message of the day (MOTD).
-    _("Hello, World!"),
-    _(
+    ("Hello, World!"),
+    (
         "This editor is free software written in Python. You can modify it, "
         "add features or fix bugs if you like."
     ),
-    _("This editor is called Mu (you say it 'mew' or 'moo')."),
-    _("Google, Facebook, NASA, Pixar, Disney and many more use Python."),
-    _(
+    ("This editor is called Mu (you say it 'mew' or 'moo')."),
+    ("Google, Facebook, NASA, Pixar, Disney and many more use Python."),
+    (
         "Programming is a form of magic. Learn to cast the right spells with "
         "code and you'll be a wizard."
     ),
-    _(
+    (
         "REPL stands for read, evaluate, print, loop. It's a fun way to talk "
         "to your computer! :-)"
     ),
-    _("Be brave, break things, learn and have fun!"),
-    _("Make your software both useful AND fun. Empower your users."),
-    _("For the Zen of Python: import this"),
-    _("Diversity promotes creativity."),
-    _("An open mind, spirit of adventure and respect for diversity are key."),
-    _(
+    ("Be brave, break things, learn and have fun!"),
+    ("Make your software both useful AND fun. Empower your users."),
+    ("For the Zen of Python: import this"),
+    ("Diversity promotes creativity."),
+    ("An open mind, spirit of adventure and respect for diversity are key."),
+    (
         "Don't worry if it doesn't work. Learn the lesson, fix it and try "
         "again! :-)"
     ),
-    _("Coding is collaboration."),
-    _("Compliment and amplify the good things with code."),
-    _(
+    ("Coding is collaboration."),
+    ("Compliment and amplify the good things with code."),
+    (
         "In theory, theory and practice are the same. In practice, they're "
         "not. ;-)"
     ),
-    _("Debugging is twice as hard as writing the code in the first place."),
-    _("It's fun to program."),
-    _("Programming has more to do with problem solving than writing code."),
-    _("Start with your users' needs."),
-    _("Try to see things from your users' point of view."),
-    _("Put yourself in your users' shoes."),
-    _(
+    ("Debugging is twice as hard as writing the code in the first place."),
+    ("It's fun to program."),
+    ("Programming has more to do with problem solving than writing code."),
+    ("Start with your users' needs."),
+    ("Try to see things from your users' point of view."),
+    ("Put yourself in your users' shoes."),
+    (
         "Explaining a programming problem to a friend often reveals the "
         "solution. :-)"
     ),
-    _("If you don't know, ask. Nobody to ask? Just look it up."),
-    _("Complexity is the enemy. KISS - keep it simple, stupid!"),
-    _("Beautiful is better than ugly."),
-    _("Explicit is better than implicit."),
-    _("Simple is better than complex. Complex is better than complicated."),
-    _("Flat is better than nested."),
-    _("Sparse is better than dense."),
-    _("Readability counts."),
-    _(
+    ("If you don't know, ask. Nobody to ask? Just look it up."),
+    ("Complexity is the enemy. KISS - keep it simple, stupid!"),
+    ("Beautiful is better than ugly."),
+    ("Explicit is better than implicit."),
+    ("Simple is better than complex. Complex is better than complicated."),
+    ("Flat is better than nested."),
+    ("Sparse is better than dense."),
+    ("Readability counts."),
+    (
         "Special cases aren't special enough to break the rules. "
         "Although practicality beats purity."
     ),
-    _("Errors should never pass silently. Unless explicitly silenced."),
-    _("In the face of ambiguity, refuse the temptation to guess."),
-    _("There should be one-- and preferably only one --obvious way to do it."),
-    _(
+    ("Errors should never pass silently. Unless explicitly silenced."),
+    ("In the face of ambiguity, refuse the temptation to guess."),
+    ("There should be one-- and preferably only one --obvious way to do it."),
+    (
         "Now is better than never. Although never is often better than "
         "*right* now."
     ),
-    _("If the implementation is hard to explain, it's a bad idea."),
-    _("If the implementation is easy to explain, it may be a good idea."),
-    _("Namespaces are one honking great idea -- let's do more of those!"),
-    _("Mu was created by Nicholas H.Tollervey."),
-    _("To understand what recursion is, you must first understand recursion."),
-    _(
+    ("If the implementation is hard to explain, it's a bad idea."),
+    ("If the implementation is easy to explain, it may be a good idea."),
+    ("Namespaces are one honking great idea -- let's do more of those!"),
+    ("Mu was created by Nicholas H.Tollervey."),
+    ("To understand what recursion is, you must first understand recursion."),
+    (
         "Algorithm: a word used by programmers when they don't want to "
         "explain what they did."
     ),
-    _("Programmers count from zero."),
-    _("Simplicity is the ultimate sophistication."),
-    _("A good programmer is humble."),
-    _("A good programmer is playful."),
-    _("A good programmer learns to learn."),
-    _("A good programmer thinks beyond the obvious."),
-    _("A good programmer promotes simplicity."),
-    _("A good programmer avoids complexity."),
-    _("A good programmer is patient."),
-    _("A good programmer asks questions."),
-    _("A good programmer is willing to say, 'I don't know'."),
-    _("Wisest are they that know they know nothing."),
+    ("Programmers count from zero."),
+    ("Simplicity is the ultimate sophistication."),
+    ("A good programmer is humble."),
+    ("A good programmer is playful."),
+    ("A good programmer learns to learn."),
+    ("A good programmer thinks beyond the obvious."),
+    ("A good programmer promotes simplicity."),
+    ("A good programmer avoids complexity."),
+    ("A good programmer is patient."),
+    ("A good programmer asks questions."),
+    ("A good programmer is willing to say, 'I don't know'."),
+    ("Wisest are they that know they know nothing."),
 ]
 
 NEWLINE = "\n"
@@ -538,7 +538,7 @@ def check_pycodestyle(code, config_file=False):
             line_no = int(line_no) - 1
             code, description = msg.split(" ", 1)
             if code == "E303":
-                description += _(" above this line")
+                description += (" above this line")
             if line_no not in style_feedback:
                 style_feedback[line_no] = []
             style_feedback[line_no].append(
@@ -1111,7 +1111,7 @@ class Editor(QObject):
                 try:
                     text, newline = read_and_decode(path)
                 except UnicodeDecodeError:
-                    message = _("Mu cannot read the characters in {}")
+                    message = ("Mu cannot read the characters in {}")
                     filename = os.path.basename(path)
                     self._view.show_message(message.format(filename), error)
                     return
@@ -1137,7 +1137,7 @@ class Editor(QObject):
                             file_mode = mode_name
                             break
                 else:
-                    message = _("Mu was not able to open this file")
+                    message = ("Mu was not able to open this file")
                     info = _(
                         "Currently Mu only works with Python source "
                         "files or hex files created with embedded "
@@ -1146,7 +1146,7 @@ class Editor(QObject):
                     self._view.show_message(message, info)
                     return
         except OSError:
-            message = _("Could not load {}").format(path)
+            message = ("Could not load {}").format(path)
             logger.exception("Could not load {}".format(path))
             info = _(
                 "Does this file exist?\nIf it does, do you have "
@@ -1156,7 +1156,7 @@ class Editor(QObject):
         else:
             if file_mode and self.mode != file_mode:
                 mode_name = self.modes[file_mode].name
-                message = _("Is this a {} file?").format(mode_name)
+                message = ("Is this a {} file?").format(mode_name)
                 info = _(
                     "It looks like this could be a {} file.\n\n"
                     "Would you like to change Mu to the {}"
@@ -1270,14 +1270,14 @@ class Editor(QObject):
             save_and_encode(tab.text(), tab.path, tab.newline)
         except OSError as e:
             logger.error(e)
-            error_message = _("Could not save file (disk problem)")
+            error_message = ("Could not save file (disk problem)")
             information = _(
                 "Error saving file to disk. Ensure you have "
                 "permission to write the file and "
                 "sufficient disk space."
             )
         except UnicodeEncodeError:
-            error_message = _("Could not save file (encoding problem)")
+            error_message = ("Could not save file (encoding problem)")
             logger.exception(error_message)
             information = _(
                 "Unable to convert all the characters. If you "
@@ -1290,7 +1290,7 @@ class Editor(QObject):
             self._view.show_message(error_message, information)
         else:
             tab.setModified(False)
-            self.show_status_message(_("Saved file: {}").format(tab.path))
+            self.show_status_message(("Saved file: {}").format(tab.path))
 
     def check_for_shadow_module(self, path):
         """
@@ -1319,7 +1319,7 @@ class Editor(QObject):
             folder = self.get_dialog_directory(default)
             path = self._view.get_save_path(folder)
             if path and self.check_for_shadow_module(path):
-                message = _("You cannot use the filename " '"{}"').format(
+                message = ("You cannot use the filename " '"{}"').format(
                     os.path.basename(path)
                 )
                 info = _(
@@ -1383,7 +1383,7 @@ class Editor(QObject):
         if tab.has_annotations:
             logger.info("Checking code.")
             self._view.reset_annotations()
-            filename = tab.path if tab.path else _("untitled")
+            filename = tab.path if tab.path else ("untitled")
             builtins = self.modes[self.mode].builtins
             flake = check_flake(filename, tab.text(), builtins)
             if flake:
@@ -1399,11 +1399,11 @@ class Editor(QObject):
                 # No problems detected, so confirm this with a friendly
                 # message.
                 ok_messages = [
-                    _("Good job! No problems found."),
-                    _("Hurrah! Checker turned up no problems."),
-                    _("Nice one! Zero problems detected."),
-                    _("Well done! No problems here."),
-                    _("Awesome! Zero problems found."),
+                    ("Good job! No problems found."),
+                    ("Hurrah! Checker turned up no problems."),
+                    ("Nice one! Zero problems detected."),
+                    ("Well done! No problems here."),
+                    ("Awesome! Zero problems found."),
                 ]
                 self.show_status_message(random.choice(ok_messages))
                 self._view.set_checker_icon("check-good.png")
@@ -1512,7 +1512,7 @@ class Editor(QObject):
             runtime = new_settings["microbit_runtime"].strip()
             if runtime and not os.path.isfile(runtime):
                 self.microbit_runtime = ""
-                message = _("Could not find MicroPython runtime.")
+                message = ("Could not find MicroPython runtime.")
                 information = _(
                     "The micro:bit runtime you specified "
                     "('{}') does not exist. "
@@ -1627,7 +1627,7 @@ class Editor(QObject):
                 tab.breakpoint_handles = set()
                 tab.reset_annotations()
         self.show_status_message(
-            _("Changed to {} mode.").format(self.modes[mode].name)
+            ("Changed to {} mode.").format(self.modes[mode].name)
         )
 
     def autosave(self):
@@ -1675,9 +1675,9 @@ class Editor(QObject):
         """
         if device:
             if self.current_device is None:
-                heading = _("Detected new {} device.").format(device.name)
+                heading = ("Detected new {} device.").format(device.name)
             else:
-                heading = _("Device changed to {}.").format(device.name)
+                heading = ("Device changed to {}.").format(device.name)
             self.ask_to_change_mode(
                 device.short_mode_name, device.long_mode_name, heading
             )
@@ -1713,7 +1713,7 @@ class Editor(QObject):
     #                 handle = tab.markerAdd(line, tab.BREAKPOINT_MARKER)
     #                 tab.breakpoint_handles.add(handle)
     #                 return
-    #         msg = _("Cannot Set Breakpoint.")
+    #         msg = ("Cannot Set Breakpoint.")
     #         info = _(
     #             "Lines that are comments or some multi-line "
     #             "statements cannot have breakpoints."
@@ -1734,7 +1734,7 @@ class Editor(QObject):
             new_path = self._view.get_save_path(tab.path)
             if new_path and new_path != tab.path:
                 if self.check_for_shadow_module(new_path):
-                    message = _("You cannot use the filename " '"{}"').format(
+                    message = ("You cannot use the filename " '"{}"').format(
                         os.path.basename(new_path)
                     )
                     info = _(
@@ -1759,7 +1759,7 @@ class Editor(QObject):
                             "Cannot rename, a file of that name is "
                             "already open in Mu"
                         )
-                        message = _("Could not rename file.")
+                        message = ("Could not rename file.")
                         information = _(
                             "A file of that name is already open " "in Mu."
                         )
@@ -1812,7 +1812,7 @@ class Editor(QObject):
                         msg = _('Could not find "{}".')
                     self.show_status_message(msg.format(self.find))
             else:
-                message = _("You must provide something to find.")
+                message = ("You must provide something to find.")
                 information = _(
                     "Please try again, this time with something "
                     "in the find box."
@@ -1848,13 +1848,13 @@ class Editor(QObject):
             # reformatting from black.
             tab.SendScintilla(tab.SCI_SETTEXT, tidy_code.encode("utf-8"))
             self.show_status_message(
-                _("Successfully cleaned the code. " "Use CTRL-Z to undo.")
+                ("Successfully cleaned the code. " "Use CTRL-Z to undo.")
             )
         except Exception as ex:
             # The user's code is problematic. Recover with a modal dialog
             # containing a helpful message.
             logger.error(ex)
-            message = _("Your code contains problems.")
+            message = ("Your code contains problems.")
             information = _(
                 "These must be fixed before tidying will work. "
                 "Please use the 'Check' button to highlight "
