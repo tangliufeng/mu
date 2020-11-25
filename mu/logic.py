@@ -1576,13 +1576,7 @@ class Editor(QObject):
         # Remove the old mode's REPL / filesystem / plotter if required.
 
         old_mode = self.modes[self.mode]
-        if hasattr(old_mode, "remove_repl"):
-            old_mode.remove_repl()
-        if hasattr(old_mode, "remove_fs"):
-            old_mode.remove_fs()
-        if hasattr(old_mode, "remove_plotter"):
-            if old_mode.plotter:
-                old_mode.remove_plotter()
+        
         # Deactivate old mode
         self.modes[self.mode].deactivate()
         # Re-assign to new mode.
@@ -1622,11 +1616,6 @@ class Editor(QObject):
         else:
             # Stop the timer
             self._view.stop_timer()
-        # Update breakpoint states.
-        if not (self.modes[mode].is_debugger or self.modes[mode].has_debugger):
-            for tab in self._view.widgets:
-                tab.breakpoint_handles = set()
-                tab.reset_annotations()
         self.show_status_message(
             ("Changed to {} mode.").format(self.modes[mode].name)
         )

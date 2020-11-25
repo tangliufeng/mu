@@ -91,11 +91,6 @@ def setup_modes(editor, view):
         # "debugger": DebugMode(editor, view),
     }
 
-    # Check if pgzero is available (without importing it)
-    # if any([m for m in pkgutil.iter_modules() if "pgzero" in m]):
-    #     modes["pygamezero"] = PyGameZeroMode(editor, view)
-
-    # return available modes
     return modes
 
 
@@ -187,18 +182,3 @@ def run():
     # Stop the program after the application finishes executing.
     sys.exit(app.exec_())
 
-
-# def debug():
-#     """
-#     Create a debug runner in a new process.
-
-#     This is what the Mu debugger will drive. Uses the filename and associated
-#     args found in sys.argv.
-#     """
-#     if len(sys.argv) > 1:
-#         filename = os.path.normcase(os.path.abspath(sys.argv[1]))
-#         args = sys.argv[2:]
-#         run_debugger("localhost", DEBUGGER_PORT, filename, args)
-#     else:
-#         # See https://github.com/mu-editor/mu/issues/743
-#         print("Debugger requires a Python script filename to run.")

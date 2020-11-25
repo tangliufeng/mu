@@ -528,72 +528,7 @@ class MicroPythonMode(BaseMode):
             )
             self.view.show_message(message, information)
 
-    # def toggle_plotter(self, event):
-    #     """
-    #     Toggles the plotter on and off.
-    #     """
-    #     if self.plotter:
-    #         self.remove_plotter()
-    #         logger.info("Toggle plotter off.")
-    #     else:
-    #         self.add_plotter()
-    #         logger.info("Toggle plotter on.")
-
-    # def add_plotter(self):
-    #     """
-    #     Check if REPL exists, and if so, enable the plotter pane!
-    #     """
-    #     device = self.editor.current_device
-    #     if device:
-    #         try:
-    #             if not self.connection:
-    #                 self.connection = REPLConnection(
-    #                     device.port, self.baudrate
-    #                 )
-    #                 self.connection.open()
-    #             self.view.add_micropython_plotter(
-    #                 self.name, self.connection, self.on_data_flood
-    #             )
-    #             logger.info("Started plotter")
-    #             self.plotter = True
-    #         except IOError as ex:
-    #             logger.error(ex)
-    #             self.plotter = False
-    #             info = _(
-    #                 "Click on the device's reset button, wait a few"
-    #                 " seconds and then try again."
-    #             )
-    #             self.view.show_message(str(ex), info)
-    #         except Exception as ex:
-    #             logger.error(ex)
-    #     else:
-    #         message = ("Could not find an attached device.")
-    #         information = _(
-    #             "Please make sure the device is plugged into this"
-    #             " computer.\n\nIt must have a version of"
-    #             " MicroPython (or CircuitPython) flashed onto it"
-    #             " before the Plotter will work.\n\nFinally, press"
-    #             " the device's reset button and wait a few seconds"
-    #             " before trying again."
-    #         )
-    #         self.view.show_message(message, information)
-
-    # def on_data_flood(self):
-    #     """
-    #     Ensure the REPL is stopped if there is data flooding of the plotter.
-    #     """
-    #     self.remove_repl()
-    #     super().on_data_flood()
-
-    # def remove_plotter(self):
-    #     """
-    #     Remove plotter pane. Disconnects serial connection to device.
-    #     """
-    #     if not self.repl and self.connection:
-    #         self.connection.close()
-    #         self.connection = None
-    #     super().remove_plotter()
-
+   
     def activate(self):
         """
         Invoked whenever the mode is activated.
@@ -606,8 +541,6 @@ class MicroPythonMode(BaseMode):
         """
         # Remove REPL/Plotter if they are active
         self.view.hide_device_selector()
-        if self.plotter:
-            self.remove_plotter()
         if self.repl:
             self.remove_repl()
 
