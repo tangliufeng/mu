@@ -269,12 +269,7 @@ class BaseMode(QObject):
         os.makedirs(assets_dir, exist_ok=True)
         return assets_dir
 
-    def api(self):
-        """
-        Return a list of API specifications to be used by auto-suggest and call
-        tips.
-        """
-        return NotImplemented
+
 
     def set_buttons(self, **kwargs):
         """
@@ -293,59 +288,7 @@ class BaseMode(QObject):
         if self.view.current_tab:
             self.view.current_tab.setFocus()
 
-    def add_plotter(self):
-        """
-        Mode specific implementation of adding and connecting a plotter to
-        incoming streams of data tuples.
-        """
-        return NotImplemented
-
-    def remove_plotter(self):
-        """
-        If there's an active plotter, hide it.
-
-        Save any data captured while the plotter was active into a directory
-        called 'data_capture' in the workspace directory. The file contains
-        CSV data and is named with a timestamp for easy identification.
-        """
-        data_dir = os.path.join(get_default_workspace(), "data_capture")
-        if not os.path.exists(data_dir):
-            logger.debug("Creating directory: {}".format(data_dir))
-            os.makedirs(data_dir)
-        # Save the raw data as CSV
-        filename = "{}.csv".format(time.strftime("%Y%m%d-%H%M%S"))
-        f = os.path.join(data_dir, filename)
-        with open(f, "w") as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(self.view.plotter_pane.raw_data)
-        self.view.remove_plotter()
-        self.plotter = False
-        logger.info("Removing plotter")
-        self.return_focus_to_current_tab()
-
-    def on_data_flood(self):
-        """
-        Handle when the plotter is being flooded by data (which usually causes
-        Mu to become unresponsive). In this case, remove the plotter and
-        display a warning dialog to explain what's happened and how to fix
-        things (usually, put a time.sleep(x) into the code generating the
-        data).
-        """
-        logger.error("Plotting data flood detected.")
-        self.view.remove_plotter()
-        self.plotter = False
-        msg = ("Data Flood Detected!")
-        info = _(
-            "The plotter is flooded with data which will make Mu "
-            "unresponsive and freeze. As a safeguard, the plotter has "
-            "been stopped.\n\n"
-            "Flooding is when chunks of data of more than 1024 bytes are "
-            "repeatedly sent to the plotter.\n\n"
-            "To fix this, make sure your code prints small tuples of "
-            "data between calls to 'sleep' for a very short period of "
-            "time."
-        )
-        self.view.show_message(msg, info)
+   
 
     def open_file(self, path):
         """
@@ -509,7 +452,7 @@ class MicroPythonMode(BaseMode):
             except IOError as ex:
                 logger.error(ex)
                 self.repl = False
-                info = _(
+                info = (
                     "Click on the device's reset button, wait a few"
                     " seconds and then try again."
                 )
@@ -559,105 +502,3 @@ class MicroPythonMode(BaseMode):
             self.connection.send_interrupt()
 
 
-# class FileManager(QObject):
-#     """
-#     Used to manage filesystem operations on connected MicroPython devices in a
-#     manner such that the UI remains responsive.
-
-#     Provides an FTP-ish API. Emits signals on success or failure of different
-#     operations.
-#     """
-
-#     # Emitted when the tuple of files on the device is known.
-#     on_list_files = pyqtSignal(tuple)
-#     # Emitted when the file with referenced filename is got from the device.
-#     on_get_file = pyqtSignal(str)
-#     # Emitted when the file with referenced filename is put onto the device.
-#     on_put_file = pyqtSignal(str)
-#     # Emitted when the file with referenced filename is deleted from the
-#     # device.
-#     on_delete_file = pyqtSignal(str)
-#     # Emitted when Mu is unable to list the files on the device.
-#     on_list_fail = pyqtSignal()
-#     # Emitted when the referenced file fails to be got from the device.
-#     on_get_fail = pyqtSignal(str)
-#     # Emitted when the referenced file fails to be put onto the device.
-#     on_put_fail = pyqtSignal(str)
-#     # Emitted when the referenced file fails to be deleted from the device.
-#     on_delete_fail = pyqtSignal(str)
-
-#     def __init__(self, port):
-#         """
-#         Initialise with a port.
-#         """
-#         super().__init__()
-#         self.port = port
-#         self.settings = get_settings()
-
-#     def on_start(self):
-#         """
-#         Run when the thread containing this object's instance is started so
-#         it can emit the list of files found on the connected device.
-#         """
-#         # Create a new serial connection.
-#         try:
-#             self.serial = Serial(
-#                 self.port,
-#                 115200,
-#                 timeout=self.settings.get("serial_timeout", 2),
-#                 parity="N",
-#             )
-#             self.ls()
-#         except Exception as ex:
-#             logger.exception(ex)
-#             self.on_list_fail.emit()
-
-#     def ls(self):
-#         """
-#         List the files on the micro:bit. Emit the resulting tuple of filenames
-#         or emit a failure signal.
-#         """
-#         try:
-#             result = tuple(microfs.ls(self.serial))
-#             self.on_list_files.emit(result)
-#         except Exception as ex:
-#             logger.exception(ex)
-#             self.on_list_fail.emit()
-
-#     def get(self, device_filename, local_filename):
-#         """
-#         Get the referenced device filename and save it to the local
-#         filename. Emit the name of the filename when complete or emit a
-#         failure signal.
-#         """
-#         try:
-#             microfs.get(device_filename, local_filename, serial=self.serial)
-#             self.on_get_file.emit(device_filename)
-#         except Exception as ex:
-#             logger.error(ex)
-#             self.on_get_fail.emit(device_filename)
-
-#     def put(self, local_filename, target=None):
-#         """
-#         Put the referenced local file onto the filesystem on the micro:bit.
-#         Emit the name of the file on the micro:bit when complete, or emit
-#         a failure signal.
-#         """
-#         try:
-#             microfs.put(local_filename, target=target, serial=self.serial)
-#             self.on_put_file.emit(os.path.basename(local_filename))
-#         except Exception as ex:
-#             logger.error(ex)
-#             self.on_put_fail.emit(local_filename)
-
-#     def delete(self, device_filename):
-#         """
-#         Delete the referenced file on the device's filesystem. Emit the name
-#         of the file when complete, or emit a failure signal.
-#         """
-#         try:
-#             microfs.rm(device_filename, serial=self.serial)
-#             self.on_delete_file.emit(device_filename)
-#         except Exception as ex:
-#             logger.error(ex)
-#             self.on_delete_fail.emit(device_filename)

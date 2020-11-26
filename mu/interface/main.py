@@ -726,10 +726,7 @@ class Window(QMainWindow):
         the expected functionality.
         """
         self.button_bar.change_mode(mode)
-        # Update the autocomplete / tooltip APIs for each tab to the new mode.
-        api = mode.api()
-        for widget in self.widgets:
-            widget.set_api(api)
+  
 
     def set_usb_checker(self, duration, callback):
         """

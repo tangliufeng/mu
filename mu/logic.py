@@ -1030,13 +1030,7 @@ class Editor(QObject):
             self.load_cli(paths)
         self.change_mode(self.mode)
         self.show_status_message(random.choice(MOTD), 10)
-        if not self._view.tab_count:
-            py = self.modes[self.mode].code_template + NEWLINE
-            tab = self._view.add_tab(
-                None, py, self.modes[self.mode].api(), NEWLINE
-            )
-            tab.setCursorPosition(len(py.split(NEWLINE)), 0)
-            logger.info("Starting with blank file.")
+
 
     def toggle_theme(self):
         """

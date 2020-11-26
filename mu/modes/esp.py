@@ -140,6 +140,3 @@ class ESPMode(MicroPythonMode):
         Invoked when the user changes device.
         """
         super().device_changed(new_device)
-        # if self.fs:
-        #     self.remove_fs()
-        #     self.add_fs()
