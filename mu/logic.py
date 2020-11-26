@@ -882,47 +882,7 @@ class Editor(QObject):
         self.modes = modes
         self.connected_devices.modes = modes
         logger.info("Available modes: {}".format(", ".join(self.modes.keys())))
-        # Ensure there is a workspace directory.
-        # wd = self.modes["python"].workspace_dir()
-        # if not os.path.exists(wd):
-        #     logger.debug("Creating directory: {}".format(wd))
-        #     os.makedirs(wd)
-        # Ensure PyGameZero assets are copied over.
-        # images_path = os.path.join(wd, "images")
-        # fonts_path = os.path.join(wd, "fonts")
-        # sounds_path = os.path.join(wd, "sounds")
-        # music_path = os.path.join(wd, "music")
-        # if not os.path.exists(images_path):
-        #     logger.debug("Creating directory: {}".format(images_path))
-        #     os.makedirs(images_path)
-        #     for img in DEFAULT_IMAGES:
-        #         shutil.copy(
-        #             path(img, "pygamezero/"), os.path.join(images_path, img)
-        #         )
-        # if not os.path.exists(fonts_path):
-        #     logger.debug("Creating directory: {}".format(fonts_path))
-        #     os.makedirs(fonts_path)
-        # if not os.path.exists(sounds_path):
-        #     logger.debug("Creating directory: {}".format(sounds_path))
-        #     os.makedirs(sounds_path)
-        #     for sfx in DEFAULT_SOUNDS:
-        #         shutil.copy(
-        #             path(sfx, "pygamezero/"), os.path.join(sounds_path, sfx)
-        #         )
-        # if not os.path.exists(music_path):
-        #     logger.debug("Creating directory: {}".format(music_path))
-        #     os.makedirs(music_path)
-        # # Ensure Web based assets are copied over.
-        # template_path = os.path.join(wd, "templates")
-        # static_path = os.path.join(wd, "static")
-        # if not os.path.exists(template_path):
-        #     logger.debug("Creating directory: {}".format(template_path))
-        #     shutil.copytree(path("templates", "web/"), template_path)
-        # if not os.path.exists(static_path):
-        #     logger.debug("Creating directory: {}".format(static_path))
-        #     shutil.copytree(path("static", "web/"), static_path)
-            # Copy all the static directories.
-        # Start the timer to poll every second for an attached or removed
+
         # USB device.
         self._view.set_usb_checker(1, self.connected_devices.check_usb)
 
@@ -1550,8 +1510,6 @@ class Editor(QObject):
         """
         Select the mode that editor is supposed to be in.
         """
-        if self.modes[self.mode].is_debugger:
-            return
         logger.info(
             "Showing available modes: {}".format(list(self.modes.keys()))
         )
@@ -1673,36 +1631,7 @@ class Editor(QObject):
         """
         self._view.status_bar.set_message(message, duration * 1000)
 
-    # def debug_toggle_breakpoint(self, margin, line, modifiers):
-    #     """
-    #     How to handle the toggling of a breakpoint.
-    #     """
-    #     if (
-    #         self.modes[self.mode].has_debugger
-    #         or self.modes[self.mode].is_debugger
-    #     ):
-    #         tab = self._view.current_tab
-    #         code = tab.text(line)
-    #         if self.mode == "debugger":
-    #             # The debugger is running.
-    #             if is_breakpoint_line(code):
-    #                 self.modes["debugger"].toggle_breakpoint(line, tab)
-    #                 return
-    #         else:
-    #             # The debugger isn't running.
-    #             if tab.markersAtLine(line):
-    #                 tab.markerDelete(line, -1)
-    #                 return
-    #             elif is_breakpoint_line(code):
-    #                 handle = tab.markerAdd(line, tab.BREAKPOINT_MARKER)
-    #                 tab.breakpoint_handles.add(handle)
-    #                 return
-    #         msg = ("Cannot Set Breakpoint.")
-    #         info = _(
-    #             "Lines that are comments or some multi-line "
-    #             "statements cannot have breakpoints."
-    #         )
-    #         self._view.show_message(msg, info)
+   
 
     def rename_tab(self, tab_id=None):
         """

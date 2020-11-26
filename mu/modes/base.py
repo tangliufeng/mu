@@ -210,9 +210,6 @@ class BaseMode(QObject):
     description = "DESCRIPTION NOT AVAILABLE."
     icon = "help"
     repl = False
-    plotter = False
-    is_debugger = False
-    has_debugger = False
     save_timeout = 5  #: Number of seconds to wait before saving work.
     builtins = None  #: Symbols to assume as builtins when checking code style.
     file_extensions = []
@@ -424,7 +421,7 @@ class MicroPythonMode(BaseMode):
         """
         If there's an active REPL, disconnect and hide it.
         """
-        if not self.plotter and self.connection:
+        if self.connection:
             self.connection.close()
             self.connection = None
         self.view.remove_repl()
@@ -495,9 +492,6 @@ class MicroPythonMode(BaseMode):
         if self.repl:
             self.remove_repl()
             self.add_repl()
-        if self.plotter:
-            self.remove_plotter()
-            self.add_plotter()
         if self.connection:
             self.connection.send_interrupt()
 
